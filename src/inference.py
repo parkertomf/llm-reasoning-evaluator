@@ -3,7 +3,6 @@ from datasets import load_dataset
 
 
 dataset = list(load_dataset("gsm8k", "main")['test'])  # main as opposed to Socratic
-
 questions = [qa['question'] for qa in dataset[:5]]
 correct_answers = [qa['answer'][qa['answer'].rindex('####') + 4:] for qa in dataset[:5]]
 
@@ -13,7 +12,6 @@ tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
 
 messages = [{"role": "system", "content": "For each question, respond only with your numerical answer."}]
 
-model_answers = []
 texts = []
 for q in questions:
     messages.append({"role": "user", "content": q})
@@ -30,7 +28,8 @@ model_inputs = tokenizer(texts, padding=True, return_tensors="pt").to(model.devi
 generated_ids = model.generate(
     **model_inputs,
     do_sample=False,  # Consistent output. Greedy token generation
-    # The following 3 params are default values and are set to suppress an info log.
+    # The following 3 params are default values and are irrelevant parameters when used with do_sample=False
+    # They are set simply to suppress an info log.
     temperature=1.0,
     top_k=50,
     top_p=1.0
@@ -39,8 +38,8 @@ generated_ids = model.generate(
 generated_ids = [
     output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
 ]
+
 response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-       
 
 for i, q in enumerate(questions):
     print(f"Question: {q}\nCorrect Response: {correct_answers[i]}\nModel Response: {response[i]}\n\n" )
