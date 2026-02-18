@@ -19,6 +19,7 @@ for q in questions:
     messages.pop()
 model_inputs = tokenizer(formatted_messages, padding=True, return_tensors="pt").to(model.device)
 
+# Actually generate
 generated_ids = model.generate(
     **model_inputs,
     do_sample=False,  # Consistent output. Greedy token generation
@@ -35,7 +36,7 @@ generated_ids = [
     for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
 ]
 
+# Handle ouput
 model_responses = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-
 for i, q in enumerate(questions):
     print(f"Question: {q}\nCorrect Response: {correct_answers[i]}\nModel Response: {model_responses[i]}\n\n")
