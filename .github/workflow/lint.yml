@@ -1,0 +1,22 @@
+name: Code Quality
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install YAPF
+        run: pip install yapf
+
+      - name: Check Formatting
+        # This will return a non-zero exit code (failing the build) if the code doesn't match the .style.yapf rules
+        run: yapf --diff --recursive .
