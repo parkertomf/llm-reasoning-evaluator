@@ -14,6 +14,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
 messages = [{"role": "system", "content": "For each question, respond only with your numerical answer."}]
 
 model_answers = []
+texts = []
 for q in questions:
     messages.append({"role": "user", "content": q})
     text = tokenizer.apply_chat_template(
@@ -21,24 +22,25 @@ for q in questions:
         tokenize=False,
         add_generation_prompt=True
     )
+    texts.append(text)
+    messages.pop()
 
-    model_inputs = tokenizer(text, return_tensors="pt").to(model.device)
+model_inputs = tokenizer(texts, padding=True, return_tensors="pt").to(model.device)
 
-    generated_ids = model.generate(
-        **model_inputs,
-        do_sample=False,  # Consistent output. Greedy token generation
-        # The following 3 params are default values and are set to suppress an info log.
-        temperature=1.0,
-        top_k=50,
-        top_p=1.0
-    )
-    # Remove the prompt tokens from the output so only the model’s new answer remains.
-    generated_ids = [
-        output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-    ]
-    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-    model_answers.append(response)
-    messages.pop()        
-print(questions)
-print(correct_answers)
-print(model_answers)
+generated_ids = model.generate(
+    **model_inputs,
+    do_sample=False,  # Consistent output. Greedy token generation
+    # The following 3 params are default values and are set to suppress an info log.
+    temperature=1.0,
+    top_k=50,
+    top_p=1.0
+)
+# Remove the prompt tokens from the output so only the model’s new answer remains.
+generated_ids = [
+    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+]
+response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+       
+
+for i, q in enumerate(questions):
+    print(f"Question: {q}\nCorrect Response: {correct_answers[i]}\nModel Response: {response[i]}\n\n" )
