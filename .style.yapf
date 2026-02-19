@@ -1,8 +1,0 @@
-[style]
-based_on_style = pep8
-column_limit = 100
-# Increase these penalties to discourage splitting
-split_penalty_after_opening_bracket = 500
-split_penalty_for_added_line_break = 1000
-split_before_named_assigns = False
-split_before_expression_after_opening_paren = False
