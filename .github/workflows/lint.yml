@@ -1,6 +1,9 @@
-name: Code Quality
+name: Code Quality (YAPF)
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
 
 jobs:
   lint:
