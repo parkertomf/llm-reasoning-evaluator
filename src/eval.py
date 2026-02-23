@@ -2,7 +2,7 @@ from evaluator.models import ModelWrapper
 from evaluator.datasets import GSM8KDataset
 from evaluator.utils import sort_output, print_statistics
 
-if __name__ == "__main__":
+def main():
     # These are hardcoded for now. Input capacity will be added with the addition of more options in the future.
     eval_count = 5
     dataset = GSM8KDataset(eval_count)
@@ -43,3 +43,7 @@ if __name__ == "__main__":
 
     correct, incorrect, extract_fails = sort_output(eval_count, model_responses, dataset)
     print_statistics(correct, incorrect, extract_fails, model_name, eval_count)
+
+
+if __name__ == "__main__":
+    main()
