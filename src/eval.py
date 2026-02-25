@@ -41,9 +41,9 @@ def main():
                 top_p=1.0)
             
             # Remove the prompt tokens from the output so only the model’s new answers remain.
-            new_tokens = response_tokens[:, model_inputs.input_ids.shape[-1]:]
+            new_tokens = response_tokens[:, model_inputs.input_ids.shape[-1]:].cpu()
 
-            decoded = model_wrapper.tokenizer.batch_decode(new_tokens.cpu(), skip_special_tokens=True)
+            decoded = model_wrapper.tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
             decoded_responses.extend(decoded)
 
     correct, incorrect, extract_fails = sort_output(decoded_responses, dataset)
