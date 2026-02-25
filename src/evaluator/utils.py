@@ -3,12 +3,12 @@ from evaluator.datasets import GSM8KDataset
 
 
 def sort_output(
-    eval_count: int,
     model_responses: List[str],
     dataset: GSM8KDataset,
 ) -> Tuple[int, int, int]:
+    """Get the counts of correct answers, incorrect answers, and extraction failures from a model's response."""
     correct, incorrect, extract_fails = 0, 0, 0
-    for i in range(eval_count):
+    for i in range(len(model_responses)):
         model_res = model_responses[i]
         if not dataset.is_valid_answer(model_res):
             extract_fails += 1
@@ -24,8 +24,8 @@ def print_statistics(
     incorrect: int,
     extract_fails: int,
     model_name: str,
-    eval_count: int,
 ) -> None:
+    eval_count = correct + incorrect + extract_fails
     print(f"\nModel: {model_name}\n"
           f"Problems Tested: {eval_count}\n"
           f"Correct: {correct}\n"
