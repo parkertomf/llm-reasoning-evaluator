@@ -2,11 +2,12 @@ from evaluator.models import ModelWrapper
 from evaluator.datasets import GSM8KDataset
 from evaluator.utils import sort_output, print_statistics
 from torch import inference_mode
+from tqdm import tqdm
 
 
 def main():
     # These are hardcoded for now. Input capacity will be added with the addition of more options in the future.
-    eval_count = 10000
+    eval_count = 500
     dataset = GSM8KDataset(eval_count)
     model_name = "Qwen/Qwen2.5-1.5B-Instruct"
 
@@ -15,7 +16,7 @@ def main():
     BATCH_SIZE = 256  # Handle questions in batches to avoid running out of memory.
     decoded_responses = []
     with inference_mode():
-        for i in range(0, len(dataset.questions), BATCH_SIZE):
+        for i in tqdm(range(0, len(dataset.questions), BATCH_SIZE), desc="Evaluating"):
             batch = dataset.questions[i:i + BATCH_SIZE]
             formatted_prompts = [
                 model_wrapper.tokenizer.apply_chat_template(
@@ -42,7 +43,7 @@ def main():
             # Remove the prompt tokens from the output so only the model’s new answers remain.
             new_tokens = response_tokens[:, model_inputs.input_ids.shape[-1]:]
 
-            decoded = model_wrapper.tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
+            decoded = model_wrapper.tokenizer.batch_decode(new_tokens.cpu(), skip_special_tokens=True)
             decoded_responses.extend(decoded)
 
     correct, incorrect, extract_fails = sort_output(decoded_responses, dataset)
