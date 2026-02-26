@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def main():
     # These are hardcoded for now. Input capacity will be added with the addition of more options in the future.
-    eval_count = 500
+    eval_count = 50
     dataset = GSM8KDataset(eval_count)
     model_name = "Qwen/Qwen2.5-1.5B-Instruct"
 
@@ -41,7 +41,7 @@ def main():
                 top_p=1.0)
             
             # Remove the prompt tokens from the output so only the model’s new answers remain.
-            new_tokens = response_tokens[:, model_inputs.input_ids.shape[-1]:].cpu()
+            new_tokens = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, response_tokens)]
 
             decoded = model_wrapper.tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
             decoded_responses.extend(decoded)
