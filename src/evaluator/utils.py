@@ -24,10 +24,12 @@ def print_statistics(
     incorrect: int,
     extract_fails: int,
     model_name: str,
+    dataset_name: str,
 ) -> None:
     eval_count = correct + incorrect + extract_fails
     print(
         f"\nModel: {model_name}\n"
+        f"Dataset: {dataset_name}\n"
         f"Problems Tested: {eval_count}\n"
         f"Correct: {correct}\n"
         f"Incorrect: {incorrect}\n"
