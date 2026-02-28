@@ -4,10 +4,10 @@ from datasets import load_dataset
 class GSM8KDataset:
     """Loads, preprocesses, and handles GSM8K test examples."""
 
-    def __init__(self, eval_count: int):
+    def __init__(self, question_count: int):
         self.name = "gsm8k"
         dataset = list(load_dataset(self.name, "main")["test"])  # main as opposed to Socratic
-        subset = dataset[:eval_count]
+        subset = dataset[:question_count]
         self.questions = [qa["question"] for qa in subset]
         self.correct_answers = [qa["answer"][qa["answer"].rindex("####") + 5:] for qa in subset]
         self.base_prompt = "For each question, respond only with your numerical answer."

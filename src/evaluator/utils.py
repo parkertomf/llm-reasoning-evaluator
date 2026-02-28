@@ -26,14 +26,14 @@ def print_statistics(
     model_name: str,
     dataset_name: str,
 ) -> None:
-    eval_count = correct + incorrect + extract_fails
+    question_count = correct + incorrect + extract_fails
     print(
         f"\nModel: {model_name}\n"
         f"Dataset: {dataset_name}\n"
-        f"Problems Tested: {eval_count}\n"
+        f"Problems Tested: {question_count}\n"
         f"Correct: {correct}\n"
         f"Incorrect: {incorrect}\n"
         f"Extraction Failures: {extract_fails}\n"
-        f"Accuracy: {(correct / eval_count * 100):.1f}%\n"
-        f"Extraction Success Rate: {((eval_count - extract_fails) / eval_count * 100):.1f}%\n"
-        f"Accuracy on Extraction Success: {(correct / (eval_count - extract_fails) * 100):.1f}%\n")
+        f"Accuracy: {(correct / question_count * 100):.1f}%\n"
+        f"Extraction Success Rate: {((question_count - extract_fails) / question_count * 100):.1f}%\n"
+        f"Accuracy on Extraction Success: {(correct / (question_count - extract_fails) * 100):.1f}%\n")
