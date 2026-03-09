@@ -1,10 +1,10 @@
 from typing import Tuple, List
-from evaluator.datasets import Gsm8kDataset
+from evaluator.datasets import Gsm8kDatasetWrapper
 
 
 def sort_output(
     decoded_responses: List[str],
-    dataset: Gsm8kDataset,
+    dataset: Gsm8kDatasetWrapper,
 ) -> Tuple[int, int, int]:
     """Get the counts of correct answers, incorrect answers, and extraction failures from a model's response."""
     correct, incorrect, extract_fails = 0, 0, 0

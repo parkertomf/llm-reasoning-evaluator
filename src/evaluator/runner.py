@@ -2,11 +2,11 @@ from typing import List
 from torch import inference_mode
 from tqdm import tqdm
 from evaluator.models import ModelWrapper
-from evaluator.datasets import Gsm8kDataset
+from evaluator.datasets import Gsm8kDatasetWrapper
 
 
 def run_eval(
-    dataset: Gsm8kDataset,
+    dataset: Gsm8kDatasetWrapper,
     model_wrapper: ModelWrapper,
     batch_size: int,
     max_new_tokens: int,

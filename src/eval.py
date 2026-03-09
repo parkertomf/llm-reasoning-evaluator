@@ -1,5 +1,5 @@
 from evaluator.models import ModelWrapper
-from evaluator.datasets import Gsm8kDataset
+from evaluator.datasets import Gsm8kDatasetWrapper
 from evaluator.utils import sort_output, print_statistics
 from evaluator.runner import run_eval
 from evaluator.types import VALID_PROMPTING_STRATEGIES
@@ -10,7 +10,7 @@ def main():
     args = get_args()
 
     # Dataset and model are hardcoded for now. Input capacity may be added with the addition of more options in the future.
-    dataset = Gsm8kDataset(args.question_count, args.prompt_strategy)
+    dataset = Gsm8kDatasetWrapper(args.question_count, args.prompt_strategy)
     model_name = "Qwen/Qwen2.5-1.5B-Instruct"
 
     model_wrapper = ModelWrapper(model_name)

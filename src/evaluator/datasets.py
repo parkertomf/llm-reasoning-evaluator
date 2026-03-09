@@ -1,24 +1,26 @@
 from re import compile
 from datasets import load_dataset
-from typing import Literal
 from evaluator.types import StrategyType
 
 ANS_REGEX = compile(r"#### (\-?[0-9\.\,]+)")
 INVALID_ANS = "[invalid]"
 
 
-class Gsm8kDataset:
+class Gsm8kDatasetWrapper:
     """Loads, preprocesses, and handles GSM8K test examples."""
 
     def __init__(self, question_count: int, prompt_strategy: StrategyType):
         self.name = "gsm8k"
         self.prompt_strategy = prompt_strategy
 
-        dataset = list(load_dataset(self.name, "main")["test"])  # main as opposed to Socratic
-        subset = dataset[:question_count]
+        self.dataset = load_dataset(self.name, "main")  # main as opposed to Socratic
+        
+        # Tested subset
+        subset = list(self.dataset["test"])[:question_count]
         self.questions = [qa["question"] for qa in subset]
         self.correct_answers = [qa["answer"][qa["answer"].rindex("####") + 5:] for qa in subset]
 
+        # TODO: Clean up comments and repetition
         match self.prompt_strategy:
             case "baseline":
                 # 0/10 extracted. Insane that this could make such a difference
@@ -40,6 +42,14 @@ class Gsm8kDataset:
                 self.base_prompt = "For each question, respond only with your numerical answer."
             case "cot":
                 self.base_prompt = "Explain step by step. End your response with your final answer in the format: '#### '.\nFor example: '#### 42'"
+            case "one-shot":
+                # TODO Possible that this is supposed to be a whole chat template like we're continuing the conversation. Investigate
+                self.base_prompt = (
+                    f"For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'\n"
+                    f"Here is a full example question and appropriate response:\n"
+                    f"User: '{self.dataset['train'][0]['question']}'\n"
+                    f"Assistant: '{self.dataset['train'][0]['answer']}'"
+                )
 
     def extract_answer(self, text: str) -> str:
         """
