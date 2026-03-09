@@ -67,7 +67,8 @@ Execution time by batch size is a U-curve with a Goldilocks zone of efficiency.
 On my machine, experimentation suggests that the most accurate and most time-efficient batch size is in the range of 16-64, so I chose to stick with 32. Although accuracy was lower at both ends, extraction success rate remained relatively stable, suggesting that extraction success is not affected by batching, even though the model's ability to do the actual math is. An important caveat is that since the signal size of the accuracy variation is small (8.5%-8.9% range) range, it is not certain.
 
 ### Response Extraction
-The prompt requests that the model respond only with the numerical answer to the question, so extraction just verifies that.
+GSM8K evaluation follows the standard answer extraction method used in the official repository, reimplemented here.
+https://github.com/openai/grade-school-math/blob/master/grade_school_math/dataset.py
 
 ## Next Steps
 - Add prompting variants

@@ -2,13 +2,14 @@ from typing import List
 from torch import inference_mode
 from tqdm import tqdm
 from evaluator.models import ModelWrapper
-from evaluator.datasets import GSM8KDataset
+from evaluator.datasets import Gsm8kDataset
 
 
 def run_eval(
-    dataset: GSM8KDataset,
+    dataset: Gsm8kDataset,
     model_wrapper: ModelWrapper,
     batch_size: int,
+    max_new_tokens: int,
 ) -> List[str]:
     """Format dataset questions for the model, run the inference loop, and decode the response."""
     decoded_responses = []
@@ -30,7 +31,7 @@ def run_eval(
                 formatted_prompts, padding=True, return_tensors="pt").to(model_wrapper.model.device)
             response_tokens = model_wrapper.model.generate(
                 **model_inputs,
-                max_new_tokens=16,
+                max_new_tokens=max_new_tokens,
                 do_sample=False,  # Use greedy token generation for consistent output.
                 # The following 3 params are default values and irrelevant when used with do_sample=False; they are set to suppress an info log.
                 temperature=1.0,
