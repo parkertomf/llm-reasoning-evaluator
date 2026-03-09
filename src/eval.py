@@ -32,7 +32,7 @@ def get_args():
                         '--batch-size',
                         type=int,
                         default=32,
-                    help='Batch size for each inference loop')
+                        help='Batch size for each inference loop')
     parser.add_argument('-qc',
                         '--question-count',
                         type=int,

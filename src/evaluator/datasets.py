@@ -6,6 +6,7 @@ from evaluator.types import StrategyType
 ANS_REGEX = compile(r"#### (\-?[0-9\.\,]+)")
 INVALID_ANS = "[invalid]"
 
+
 class Gsm8kDataset:
     """Loads, preprocesses, and handles GSM8K test examples."""
 
@@ -31,14 +32,14 @@ class Gsm8kDataset:
 
                 # Fixed extraction, 2/10 correct 5/10 extracted
                 # "For each question, you MUST prefix the final answer with these characters: '#### '."
-                
+
                 # 0/10
                 # Tried: "For each question, you MUST end your response with your final answer in the format: '#### [final answer]'" <—- 0 success
                 # "End your response with a line containing exactly: #### [answer]"
             case "answer-only":
                 self.base_prompt = "For each question, respond only with your numerical answer."
             case "cot":
-                self.base_prompt = "Explain step by step. End your response with your final answer in the format: '#### '.\nFor example: '#### 42'" 
+                self.base_prompt = "Explain step by step. End your response with your final answer in the format: '#### '.\nFor example: '#### 42'"
 
     def extract_answer(self, text: str) -> str:
         """

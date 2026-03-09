@@ -31,14 +31,13 @@ def print_statistics(
     question_count = correct + incorrect + extract_fails
     extracted = question_count - extract_fails
     accuracy_on_extracted = f"{correct / extracted * 100:.1f}%" if extracted else "N/A"
-    print(
-        f"\nModel: {model_name}\n"
-        f"Dataset: {dataset_name}\n"
-        f"Problems Tested: {question_count}\n"
-        f"Prompting Strategy: {prompt_strategy}\n"
-        f"Correct: {correct}\n"
-        f"Incorrect: {incorrect}\n"
-        f"Extraction Failures: {extract_fails}\n"
-        f"Accuracy: {(correct / question_count * 100):.1f}%\n"
-        f"Extraction Success Rate: {(extracted / question_count * 100):.1f}%\n"
-        f"Accuracy on Extraction Success: {accuracy_on_extracted}\n")
+    print(f"\nModel: {model_name}\n"
+          f"Dataset: {dataset_name}\n"
+          f"Problems Tested: {question_count}\n"
+          f"Prompting Strategy: {prompt_strategy}\n"
+          f"Correct: {correct}\n"
+          f"Incorrect: {incorrect}\n"
+          f"Extraction Failures: {extract_fails}\n"
+          f"Accuracy: {(correct / question_count * 100):.1f}%\n"
+          f"Extraction Success Rate: {(extracted / question_count * 100):.1f}%\n"
+          f"Accuracy on Extraction Success: {accuracy_on_extracted}\n")
