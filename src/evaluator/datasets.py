@@ -14,42 +14,25 @@ class Gsm8kDatasetWrapper:
         self.prompt_strategy = prompt_strategy
 
         self.dataset = load_dataset(self.name, "main")  # main as opposed to Socratic
-        
+
         # Tested subset
         subset = list(self.dataset["test"])[:question_count]
         self.questions = [qa["question"] for qa in subset]
         self.correct_answers = [qa["answer"][qa["answer"].rindex("####") + 5:] for qa in subset]
 
-        # TODO: Clean up comments and repetition
+        self.base_prompt = "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'"
         match self.prompt_strategy:
-            case "baseline":
-                # 0/10 extracted. Insane that this could make such a difference
-                # self.base_prompt = "Conclude your response with your final answer in the format: '#### '.\nFor example: '#### 42'"
-
-                # # 2/10 correct, 10/10 extracted
-                self.base_prompt = "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'"
-
-                # 1/10 correct, 3/10 extracted
-                # self.base_prompt = "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '[rest of response]#### 42'"
-
-                # Fixed extraction, 2/10 correct 5/10 extracted
-                # "For each question, you MUST prefix the final answer with these characters: '#### '."
-
-                # 0/10
-                # Tried: "For each question, you MUST end your response with your final answer in the format: '#### [final answer]'" <—- 0 success
-                # "End your response with a line containing exactly: #### [answer]"
             case "answer-only":
                 self.base_prompt = "For each question, respond only with your numerical answer."
             case "cot":
-                self.base_prompt = "Explain step by step. End your response with your final answer in the format: '#### '.\nFor example: '#### 42'"
+                self.base_prompt = f"Explain your answer step by step.\n{self.base_prompt}"
             case "one-shot":
                 # TODO Possible that this is supposed to be a whole chat template like we're continuing the conversation. Investigate
-                self.base_prompt = (
-                    f"For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'\n"
-                    f"Here is a full example question and appropriate response:\n"
-                    f"User: '{self.dataset['train'][0]['question']}'\n"
-                    f"Assistant: '{self.dataset['train'][0]['answer']}'"
-                )
+                self.base_prompt = (f"\nHere is a full example question and appropriate response:\n"
+                                    f"User: '{self.dataset['train'][0]['question']}'\n"
+                                    f"Assistant: '{self.dataset['train'][0]['answer']}'\n"
+                                    f"{self.base_prompt}")
+        print("Base prompt: " + self.base_prompt)
 
     def extract_answer(self, text: str) -> str:
         """
@@ -57,6 +40,8 @@ class Gsm8kDatasetWrapper:
 
         For prompts other than "answer-only", follow the standard answer extraction method used in the official repository:
         https://github.com/openai/grade-school-math/blob/master/grade_school_math/dataset.py
+        
+        For "answer-only", the expectation is that the model response is a number in isolation without the preceeding '#### ' or anything else.
         """
         if self.prompt_strategy == "answer-only":
             return text
@@ -80,5 +65,5 @@ class Gsm8kDatasetWrapper:
         try:
             float(ans)
             return True
-        except (ValueError, TypeError):
+        except (ValueError):
             return False

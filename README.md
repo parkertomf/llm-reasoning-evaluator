@@ -70,6 +70,9 @@ On my machine, experimentation suggests that the most accurate and most time-eff
 GSM8K evaluation follows the standard answer extraction method used in the official repository, reimplemented here.
 https://github.com/openai/grade-school-math/blob/master/grade_school_math/dataset.py
 
+### Prompt Format
+For each prompt strategy, I experimented with various formats until I was satisfied.
+
 ## Next Steps
 - Add prompting variants
 - Structured prediction logging
