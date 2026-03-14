@@ -47,7 +47,9 @@ If you encounter rate limit warnings when downloading on the first run, create a
     hf auth login
     ```
 
-## Baseline Results
+## Results
+
+Answer Only:
 | **Metric** | **Value** |
 | :--- | ---: |
 | **Problems Tested** | 1319 (full set) |
@@ -57,6 +59,33 @@ If you encounter rate limit warnings when downloading on the first run, create a
 | **Accuracy** | 8.9% |
 | **Extraction Success Rate** | 97.4% |
 | **Accuracy on Extraction Success** | 9.2% |
+
+Baseline:
+
+
+One Shot:
+Model: Qwen/Qwen2.5-1.5B-Instruct
+Dataset: gsm8k
+Problems Tested: 1319
+Prompting Strategy: one-shot
+Correct: 232
+Incorrect: 475
+Extraction Failures: 612
+Accuracy: 17.6%
+Extraction Success Rate: 53.6%
+Accuracy on Extraction Success: 32.8%
+20:21
+
+cot:
+Dataset: gsm8k
+Problems Tested: 1319
+Prompting Strategy: cot
+Correct: 488
+Incorrect: 197
+Extraction Failures: 634
+Accuracy: 37.0%
+Extraction Success Rate: 51.9%
+Accuracy on Extraction Success: 71.2%
 
 ## Implementation Notes
 ### Batch Size
@@ -71,7 +100,9 @@ GSM8K evaluation follows the standard answer extraction method used in the offic
 https://github.com/openai/grade-school-math/blob/master/grade_school_math/dataset.py
 
 ### Prompt Format
-For each prompt strategy, I experimented with various formats until I was satisfied.
+For each prompt strategy, I experimented with various formats until I was satisfied. These are author-designed prompt variants, not benchmark-optimized prompts.
+Here is the prompt for each strategy:
+TODO
 
 ## Next Steps
 - Add prompting variants

@@ -207,4 +207,6 @@ marimo/_lsp/
 __marimo__/
 
 # Claude Code
+# Note that while the Claude directory is present here, this is not a vibe coded project; I used it as a consultant / tutor and never had it write code.
+# The purpose of this project is to gain ML understanding and demonstrate that I have done so. Vibe coding would defeat that purpose.
 .claude/

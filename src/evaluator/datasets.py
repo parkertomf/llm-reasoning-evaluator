@@ -1,6 +1,6 @@
 from re import compile
 from datasets import load_dataset
-from evaluator.types import StrategyType
+from evaluator.types import AnswerStatus, StrategyType
 
 ANS_REGEX = compile(r"#### (\-?[0-9\.\,]+)")
 INVALID_ANS = "[invalid]"
@@ -20,6 +20,8 @@ class Gsm8kDatasetWrapper:
         self.questions = [qa["question"] for qa in subset]
         self.correct_answers = [qa["answer"][qa["answer"].rindex("####") + 5:] for qa in subset]
 
+        # TODO: Make formatted prompts here. whole own function maybe
+
         self.base_prompt = "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'"
         match self.prompt_strategy:
             case "answer-only":
@@ -32,8 +34,8 @@ class Gsm8kDatasetWrapper:
                                     f"User: '{self.dataset['train'][0]['question']}'\n"
                                     f"Assistant: '{self.dataset['train'][0]['answer']}'\n"
                                     f"{self.base_prompt}")
-        print("Base prompt: " + self.base_prompt)
-
+        # print("Base prompt: " + self.base_prompt)
+            
     def extract_answer(self, text: str) -> str:
         """
         Extract and return the numerical solution from an answer.
@@ -45,6 +47,7 @@ class Gsm8kDatasetWrapper:
         """
         if self.prompt_strategy == "answer-only":
             return text
+            # TODO: Need the old verification back for this. Or something. dam
         else:
             match = ANS_REGEX.search(text)
             if match:
@@ -54,16 +57,10 @@ class Gsm8kDatasetWrapper:
             else:
                 return INVALID_ANS
 
-    def is_valid_answer(self, ans: str) -> bool:
-        """
-        Return True if an answer is valid for the GSM8K dataset, i.e. it is a float.
-
-        GSM8K only intends positive integer solutions, however:
-            A) There are some exceptions that are likely mistakes, according to this paper. https://arxiv.org/html/2405.00332v1
-            B) A model could also mistakenly think the answer is negative or a decimal, so that would still be a valid response, albeit an incorrect one.
-        """
-        try:
-            float(ans)
-            return True
-        except (ValueError):
-            return False
+    def get_answer_status(self, model_ans: str, correct_ans: str) -> AnswerStatus:
+        if model_ans == INVALID_ANS:
+            return "invalid"
+        elif model_ans == correct_ans:
+            return "correct"
+        else:
+            return "incorrect"
