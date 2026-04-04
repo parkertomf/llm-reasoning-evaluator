@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+import argparse
 from datetime import datetime
 from typing import get_args
 
@@ -32,22 +32,25 @@ def main():
         dataset_name=dataset.name,
         model_name=model_name,
         prompt_strategy=args.prompt_strategy,
+        verbose=args.verbose
     )
 
 
 def get_args():
-    parser = ArgumentParser(description='Evaluate LLM reasoning ability.')
-    parser.add_argument('-ps', '--prompt-strategy', default='baseline',
+    parser = argparse.ArgumentParser(description="Evaluate LLM reasoning ability.")
+    parser.add_argument("-ps", "--prompt-strategy", default="baseline",
                         choices=VALID_PROMPTING_STRATEGIES,
-                        help='How the model is prompted before each question')
-    parser.add_argument('-bs', '--batch-size', type=int, default=32,
-                        help='Batch size for each inference loop')
-    parser.add_argument('-qc', '--question-count', type=int, default=1319,
-                        help='How many questions with which to prompt the model')
+                        help="How the model is prompted before each question")
+    parser.add_argument("-bs", "--batch-size", type=int, default=32,
+                        help="Batch size for each inference loop")
+    parser.add_argument("-qc", "--question-count", type=int, default=1319,
+                        help="How many questions with which to prompt the model")
     parser.add_argument(
-        '-mnt', '--max-new-tokens', type=int, default=8, help=
-        'Max tokens for a model\'s response: low values run faster; high values may increase performance'
+        "-mnt", "--max-new-tokens", type=int, default=8, help=
+        "Max tokens for a model's response: low values run faster; high values may increase performance"
     )
+    parser.add_argument("-v", "--verbose", action=argparse.BooleanOptionalAction,
+                             help="Print result summary.")
     return parser.parse_args()
 
 

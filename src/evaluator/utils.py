@@ -39,6 +39,7 @@ def log_summary(
     dataset_name: str,
     model_name: str,
     prompt_strategy: str,
+    verbose: bool,
 ) -> None:
     """Log overall data for a run."""
     with results_file_path.open('r') as res:
@@ -70,25 +71,14 @@ def log_summary(
         )
         summ.write(json.dumps(asdict(result_summary)))
 
-
-# def print_statistics(
-#     correct: int,
-#     incorrect: int,
-#     extract_fails: int,
-#     model_name: str,
-#     dataset_name: str,
-#     prompt_strategy: str,
-# ) -> None:
-#     question_count = correct + incorrect + extract_fails
-#     extracted = question_count - extract_fails
-#     accuracy_on_extracted = f"{correct / extracted * 100:.1f}%" if extracted else "N/A"
-#     print(f"\nModel: {model_name}\n"
-#           f"Dataset: {dataset_name}\n"
-#           f"Problems Tested: {question_count}\n"
-#           f"Prompting Strategy: {prompt_strategy}\n"
-#           f"Correct: {correct}\n"
-#           f"Incorrect: {incorrect}\n"
-#           f"Extraction Failures: {extract_fails}\n"
-#           f"Accuracy: {(correct / question_count * 100):.1f}%\n"
-#           f"Extraction Success Rate: {(extracted / question_count * 100):.1f}%\n"
-#           f"Accuracy on Extraction Success: {accuracy_on_extracted}\n")
+    if verbose:
+        print(f"\nDataset: {dataset_name}\n"
+              f"Model: {model_name}\n"
+              f"Prompting Strategy: {prompt_strategy}\n"
+              f"Question Count: {question_count}\n"
+              f"Correct: {correct}\n"
+              f"Incorrect: {incorrect}\n"
+              f"Extraction Failures: {extract_fails}\n"
+              f"Accuracy: {result_summary.accuracy}\n"
+              f"Extraction Success Rate: {result_summary.extraction_success_rate}\n"
+              f"Accuracy on Extraction Success: {result_summary.accuracy_on_extraction_success}\n")
