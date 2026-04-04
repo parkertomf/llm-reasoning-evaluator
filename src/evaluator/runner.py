@@ -13,10 +13,9 @@ def run_eval(
     model_wrapper: ModelWrapper,
     batch_size: int,
     max_new_tokens: int,
-    log_file_path: Path,
-) -> list[str]:
+    results_file_path: Path,
+) -> None:
     """Format dataset questions for the model, run the inference loop, and decode the response."""
-    decoded_responses = []
     with inference_mode():
         for i in tqdm(range(0, len(dataset.questions), batch_size), desc="Evaluating"):
             # formatted_prompts = get_formatted_prompts(start, stop, model_wrapper.tokenizer.apply_chat_template)
@@ -59,7 +58,8 @@ def run_eval(
                 # The following 3 parameter arguments are default values and irrelevant when used with do_sample=False; they are set just to suppress an info log.
                 temperature=1.0,
                 top_k=50,
-                top_p=1.0)
+                top_p=1.0,
+            )
 
             # Remove the prompt tokens from the output so only the model’s new answers remain.
             new_tokens = [
@@ -68,7 +68,10 @@ def run_eval(
             ]
 
             decoded = model_wrapper.tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
-            log_results(log_file_path, i, formatted_prompts, decoded, dataset)
-            decoded_responses.extend(decoded)
-
-    return decoded_responses
+            log_results(
+                results_file_path=results_file_path,
+                start=i,
+                formatted_prompts=formatted_prompts,
+                model_responses=decoded,
+                dataset=dataset,
+            )

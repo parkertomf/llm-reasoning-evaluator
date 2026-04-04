@@ -1,9 +1,8 @@
-from re import compile
+import re
 from datasets import load_dataset
 from evaluator.types import AnswerStatus, StrategyType
 
-ANS_REGEX = compile(r"#### (\-?[0-9\.\,]+)")
-INVALID_ANS = "[invalid]"
+ANS_REGEX = re.compile(r"#### (\-?[0-9\.\,]+)")
 
 
 class Gsm8kDatasetWrapper:
@@ -35,7 +34,7 @@ class Gsm8kDatasetWrapper:
                                     f"Assistant: '{self.dataset['train'][0]['answer']}'\n"
                                     f"{self.base_prompt}")
         # print("Base prompt: " + self.base_prompt)
-            
+
     def extract_answer(self, text: str) -> str:
         """
         Extract and return the numerical solution from an answer.
@@ -46,8 +45,14 @@ class Gsm8kDatasetWrapper:
         For "answer-only", the expectation is that the model response is a number in isolation without the preceeding '#### ' or anything else.
         """
         if self.prompt_strategy == "answer-only":
-            return text
-            # TODO: Need the old verification back for this. Or something. dam
+            # GSM8K only intends positive integer solutions, however:
+            # A) there are some exceptions that are likely mistakes, according to this paper. https://arxiv.org/html/2405.00332v1
+            # B) A model could also mistakenly think the answer is negative or a decimal, so that would still be a valid response, albeit an incorrect one.
+            try:
+                float(text)
+                return text
+            except (ValueError):
+                return AnswerStatus.INVALID
         else:
             match = ANS_REGEX.search(text)
             if match:
@@ -55,12 +60,12 @@ class Gsm8kDatasetWrapper:
                 match_str = match_str.replace(",", "")
                 return match_str
             else:
-                return INVALID_ANS
+                return AnswerStatus.INVALID
 
-    def get_answer_status(self, model_ans: str, correct_ans: str) -> AnswerStatus:
-        if model_ans == INVALID_ANS:
-            return "invalid"
-        elif model_ans == correct_ans:
-            return "correct"
+    def get_answer_status(self, extracted_model_ans: str, correct_ans: str) -> AnswerStatus:
+        if extracted_model_ans == AnswerStatus.INVALID:
+            return AnswerStatus.INVALID
+        elif extracted_model_ans == correct_ans:
+            return AnswerStatus.CORRECT
         else:
-            return "incorrect"
+            return AnswerStatus.INCORRECT
