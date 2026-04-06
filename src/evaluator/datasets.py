@@ -5,6 +5,7 @@ from datasets import load_dataset
 from evaluator.types import AnswerStatus, StrategyType
 
 ANS_REGEX = re.compile(r"#### (\-?[0-9\.\,]+)")
+BASE_SYSTEM_CONTENT = "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'"
 
 
 class Gsm8kDatasetWrapper:
@@ -21,21 +22,26 @@ class Gsm8kDatasetWrapper:
         self.questions = [qa["question"] for qa in subset]
         self.correct_answers = [qa["answer"][qa["answer"].rindex("####") + 5:] for qa in subset]
 
-        # TODO: Make formatted prompts here. whole own function maybe
-
-        self.base_prompt = "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'"
+        # Everything for a prompt aside from a question
+        self.base_messages = [{"role": "system", "content": BASE_SYSTEM_CONTENT}]
         match self.prompt_strategy:
             case "answer-only":
-                self.base_prompt = "For each question, respond only with your numerical answer."
+                self.base_messages[0][
+                    "content"] = "For each question, respond only with your numerical answer."
             case "cot":
-                self.base_prompt = f"Explain your answer step by step.\n{self.base_prompt}"
+                self.base_messages[0][
+                    "content"] = f"Explain your answer step by step.\n{BASE_SYSTEM_CONTENT}"
             case "one-shot":
-                # TODO Possible that this is supposed to be a whole chat template like we're continuing the conversation. Investigate
-                self.base_prompt = (f"\nHere is a full example question and appropriate response:\n"
-                                    f"User: '{self.dataset['train'][0]['question']}'\n"
-                                    f"Assistant: '{self.dataset['train'][0]['answer']}'\n"
-                                    f"{self.base_prompt}")
-        # print("Base prompt: " + self.base_prompt)
+                self.base_messages.extend([{
+                    "role": "user",
+                    "content": self.dataset["train"][0]["question"]
+                }, {
+                    "role": "assistant",
+                    "content": self.dataset["train"][0]["answer"]
+                }])
+
+    def get_messages(self, question: str) -> list[dict]:
+        return self.base_messages + [{"role": "user", "content": question}]
 
     def extract_answer(self, text: str) -> str:
         """

@@ -15,37 +15,17 @@ def run_eval(
     max_new_tokens: int,
     results_file_path: Path,
 ) -> None:
-    """Format dataset questions for the model, run the inference loop, and decode the response."""
+    """Format prompts for the model, run the inference loop, decode the response, and dump the results."""
     with inference_mode():
         for i in tqdm(range(0, len(dataset.questions), batch_size), desc="Evaluating"):
-            # formatted_prompts = get_formatted_prompts(start, stop, model_wrapper.tokenizer.apply_chat_template)
             batch = dataset.questions[i:i + batch_size]
-            # if dataset.base_prompt == "one-shot":
-            #     formatted_prompts = [
-            #         model_wrapper.tokenizer.apply_chat_template([{
-            #             "role": "system",
-            #             "content": "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'"
-            #         }, {
-            #             "role": "user",
-            #             "content": "Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. How many clips did Natalia sell altogether in April and May?"
-            #         }, {
-            #             "role": "assistant",
-            #             "content": "Natalia sold 48/2 = <<48/2=24>>24 clips in May.\nNatalia sold 48+24 = <<48+24=72>>72 clips altogether in April and May.\n#### 72"
-            #         }, {
-            #             "role": "user",
-            #             "content": q
-            #         }
-            #         ], tokenize=False, add_generation_prompt=True) for q in batch
-            #     ]
-            # else:
+
             formatted_prompts = [
-                model_wrapper.tokenizer.apply_chat_template([{
-                    "role": "system",
-                    "content": dataset.base_prompt
-                }, {
-                    "role": "user",
-                    "content": q
-                }], tokenize=False, add_generation_prompt=True) for q in batch
+                model_wrapper.tokenizer.apply_chat_template(
+                    dataset.get_messages(q),
+                    tokenize=False,
+                    add_generation_prompt=True,
+                ) for q in batch
             ]
 
             # Run inference (tokenization and generation).
