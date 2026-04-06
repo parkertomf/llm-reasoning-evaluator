@@ -1,5 +1,5 @@
-from dataclasses import asdict
 import json
+import dataclasses
 from pathlib import Path
 
 from evaluator.datasets import Gsm8kDatasetWrapper
@@ -30,7 +30,7 @@ def log_results(
                 correct_answer=correct_answer,
                 answer_status=answer_status,
             )
-            f.write(f"{json.dumps(asdict(result_record))}\n")
+            f.write(f"{json.dumps(dataclasses.asdict(result_record))}\n")
 
 
 def log_summary(
@@ -69,7 +69,7 @@ def log_summary(
             accuracy_on_extraction_success=f"{correct / extracted * 100:.1f}%"
             if extracted else "N/A",
         )
-        summ.write(json.dumps(asdict(result_summary)))
+        summ.write(json.dumps(dataclasses.asdict(result_summary)))
 
     if verbose:
         print(f"\nDataset: {dataset_name}\n"
