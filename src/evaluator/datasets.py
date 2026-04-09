@@ -15,10 +15,10 @@ class Gsm8kDatasetWrapper:
         self.name = "gsm8k"
         self.prompt_strategy = prompt_strategy
 
-        self.dataset = load_dataset(self.name, "main")  # main as opposed to Socratic
+        dataset = load_dataset(self.name, "main")  # main as opposed to Socratic
 
         # Tested subset
-        subset = list(self.dataset["test"])[:question_count]
+        subset = list(dataset["test"])[:question_count]
         self.questions = [qa["question"] for qa in subset]
         self.correct_answers = [qa["answer"][qa["answer"].rindex("####") + 5:] for qa in subset]
 
@@ -34,10 +34,10 @@ class Gsm8kDatasetWrapper:
             case "one-shot":
                 self.base_messages.extend([{
                     "role": "user",
-                    "content": self.dataset["train"][0]["question"]
+                    "content": dataset["train"][0]["question"]
                 }, {
                     "role": "assistant",
-                    "content": self.dataset["train"][0]["answer"]
+                    "content": dataset["train"][0]["answer"]
                 }])
 
     def get_messages(self, question: str) -> list[dict]:

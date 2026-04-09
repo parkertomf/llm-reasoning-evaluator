@@ -11,7 +11,7 @@ MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
 
 
 def main():
-    args = get_cl_args()
+    args = get_command_line_args()
 
     dataset = Gsm8kDatasetWrapper(args.question_count, args.prompt_strategy)
     model_wrapper = ModelWrapper(MODEL_NAME)
@@ -34,7 +34,7 @@ def main():
     )
 
 
-def get_cl_args():
+def get_command_line_args():
     parser = argparse.ArgumentParser(description="Evaluate LLM reasoning ability.")
 
     parser.add_argument(
