@@ -47,26 +47,26 @@ def get_args():
         help="How the model is prompted before each question",
     )
     parser.add_argument(
-        "-bs",
-        "--batch-size",
-        type=int,
-        default=32,
-        help="Batch size for each inference loop",
-    )
-    parser.add_argument(
         "-qc",
         "--question-count",
         type=int,
-        default=1319,
+        default=1319,  # This is the total number of test questions in GSM8K.
         help="How many questions with which to prompt the model",
     )
     parser.add_argument(
         "-mnt",
         "--max-new-tokens",
         type=int,
-        default=8,
+        default=1024,
         help=
-        "Max tokens for a model's response: low values run faster; high values may increase performance",
+        "Max tokens for a model's response: low values may run faster; high values may increase performance",
+    )
+    parser.add_argument(
+        "-bs",
+        "--batch-size",
+        type=int,
+        default=32,
+        help="Batch size for each inference loop",
     )
     parser.add_argument(
         "-v",
