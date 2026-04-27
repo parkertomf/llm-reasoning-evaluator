@@ -24,7 +24,15 @@ class TestDatasets:
         with patch("evaluator.datasets.load_dataset", return_value=MOCK_DATASET):
             yield
 
-    def test_extract_answer_general(self):
+    def test_init_one_shot(self):
+        """Test initialization for the one shot prompt strategy."""
+        dataset = Gsm8kDatasetWrapper(question_count=1, prompt_strategy="one-shot")
+
+        # Verify the training examples are added to the messages correctly
+        assert dataset.base_messages[1]["content"] == MOCK_DATASET["train"][0]["question"]
+        assert dataset.base_messages[2]["content"] == MOCK_DATASET["train"][0]["answer"]
+
+    def test_extract_answer(self):
         """Test the extract_answer method for for all prompt strategies other than answer-only, which have shared extraction logic."""
         dataset = Gsm8kDatasetWrapper(question_count=1, prompt_strategy="baseline")
 
@@ -42,7 +50,7 @@ class TestDatasets:
 
         # Undesired formatting, but still extractable
         assert dataset.extract_answer(
-            "The answer is #### 42 (the answer to the Great Question).") == "42"
+            "The answer is #### 42 (the answer to the Great Question)") == "42"
 
         # Incorrect (missing "#### ")
         assert dataset.extract_answer("42") == AnswerStatus.INVALID
