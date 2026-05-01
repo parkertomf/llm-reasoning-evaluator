@@ -30,7 +30,9 @@ class TestUtils:
         )
 
         with results_file_path.open('r') as res:
-            for i, line in enumerate(res):
+            lines = res.readlines()
+            assert len(lines) == len(MOCK_FORMATTED_PROMPTS)
+            for i, line in enumerate(lines):
                 result_record = json.loads(line)
                 assert result_record["formatted_prompt"] == MOCK_FORMATTED_PROMPTS[i]
                 assert result_record["model_response"] == MOCK_MODEL_RESPONSES[i]
