@@ -16,6 +16,7 @@ MOCK_DATASET = {
     }]
 }
 
+
 @pytest.fixture()
 def patch_load_dataset():
     with patch("evaluator.datasets.load_dataset", return_value=MOCK_DATASET):
