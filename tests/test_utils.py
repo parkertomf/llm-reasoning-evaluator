@@ -11,12 +11,12 @@ MOCK_FORMATTED_PROMPTS = [
     f"<|im_start|>system\nFor each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'<|im_end|>\n<|im_start|>user\n{MOCK_DATASET['test'][1]['question']}<|im_end|>\n<|im_start|>assistant\n"
 ]
 MOCK_MODEL_RESPONSES = ["The answer is 42", "According to Vegeta, it is over #### 9000"]
-EXPECTED_EXTRACTED_ANSWERS = [AnswerStatus.INVALID, "9000"]
-EXPECTED_ANSWER_STATUSES = [AnswerStatus.INVALID, AnswerStatus.CORRECT]
-EXPECTED_CORRECT_ANSWERS = ["42", "9000"]
 MOCK_DATASET_NAME = "test_dataset"
 MOCK_MODEL_NAME = "test_model"
 MOCK_PROMPT_STRATEGY = "baseline"
+EXPECTED_EXTRACTED_ANSWERS = [AnswerStatus.INVALID, "9000"]
+EXPECTED_ANSWER_STATUSES = [AnswerStatus.INVALID, AnswerStatus.CORRECT]
+EXPECTED_CORRECT_ANSWERS = ["42", "9000"]
 
 
 class TestUtils:

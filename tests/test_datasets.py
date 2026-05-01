@@ -3,6 +3,7 @@ from evaluator.types import AnswerStatus
 
 from tests.conftest import MOCK_DATASET
 
+
 class TestDatasets:
 
     def test_init_one_shot(self, patch_load_dataset):
