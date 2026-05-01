@@ -23,6 +23,7 @@ httpcore==1.0.9
 httpx==0.28.1
 huggingface_hub==1.4.1
 idna==3.11
+iniconfig==2.3.0
 Jinja2==3.1.6
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
@@ -36,6 +37,7 @@ packaging==26.0
 pandas==3.0.0
 pillow==12.0.0
 platformdirs==4.6.0
+pluggy==1.6.0
 propcache==0.4.1
 protobuf==6.33.5
 psutil==7.2.2
@@ -43,6 +45,7 @@ pyarrow==23.0.0
 pydantic==2.12.5
 pydantic_core==2.41.5
 Pygments==2.19.2
+pytest==9.0.3
 python-dateutil==2.9.0.post0
 PyYAML==6.0.3
 regex==2026.1.15

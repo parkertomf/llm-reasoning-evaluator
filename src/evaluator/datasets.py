@@ -43,6 +43,10 @@ class Gsm8kDatasetWrapper:
     def get_messages(self, question: str) -> list[dict]:
         return self.base_messages + [{"role": "user", "content": question}]
 
+    def _strip_commas(self, text: str) -> str:
+        """Returns a copy of a string with commas removed. Intended for use in extract_answer below."""
+        return text.replace(",", "")
+
     def extract_answer(self, text: str) -> str:
         """
         Extract and return the numerical solution from an answer.
@@ -56,6 +60,7 @@ class Gsm8kDatasetWrapper:
             # GSM8K only intends positive integer solutions, however:
             # A) there are some exceptions that are likely mistakes, according to this paper. https://arxiv.org/html/2405.00332v1
             # B) A model could also mistakenly think the answer is negative or a decimal, so that would still be a valid response, albeit an incorrect one.
+            text = self._strip_commas(text)
             try:
                 float(text)
                 return text
@@ -65,7 +70,7 @@ class Gsm8kDatasetWrapper:
             match = ANS_REGEX.search(text)
             if match:
                 match_str = match.group(1).strip()
-                match_str = match_str.replace(",", "")
+                match_str = self._strip_commas(match_str)
                 return match_str
             else:
                 return AnswerStatus.INVALID

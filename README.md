@@ -244,10 +244,9 @@ For each prompt strategy, I experimented with various formats until I was satisf
 
 All prompts, with the exception of answer only (which requests the numerical answer in isolation), request that the numerical response be prefixed with "#### ", and they all give an example of that format. Further analysis could be done without that example; in my experience, extraction success suffers without it, unsurprisingly.
 
-See the [Results](#results) section above for examples of exact phrasing of prompt strategies.
+See the [Sample Results](#sample-results) section above for examples of exact phrasing of prompt strategies.
 
 ## Next Steps
-- Add Weights & Biases for data visualization
 - Error clustering
 - Identify failure patterns
 - Try one refinement loop
