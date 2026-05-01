@@ -7,4 +7,5 @@ split_before_named_assigns = false
 split_before_expression_after_opening_paren = false
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
