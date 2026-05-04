@@ -9,10 +9,14 @@ Resulting in: 2026-04-07_14-52-31_qc1319_one-shot_first_10_errors.jsonl
 import argparse
 import json
 from pathlib import Path
+import sys
 
 
 def main():
     args = get_command_line_args()
+
+    if "results.jsonl" not in args.filename:
+        sys.exit("Filename must include \"results.jsonl\"")
 
     base_path = Path(__file__).parent.parent / "output"
     results_path = base_path / args.filename
