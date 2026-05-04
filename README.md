@@ -1,3 +1,4 @@
+![Build Status](https://github.com/parkertomf/llm-reasoning-evaluator/actions/workflows/tests.yml/badge.svg)
 ![Build Status](https://github.com/parkertomf/llm-reasoning-evaluator/actions/workflows/lint.yml/badge.svg)
 
 # Automated Evaluation of LLM Reasoning (Work in Progress)
