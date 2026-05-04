@@ -13,8 +13,8 @@ The current scope is one model and one dataset:
 Prompt strategy options include:
 - **Baseline**: Prompts the model to give the answer in a specific extractible way, but provides no other instructions.
 - **Answer Only**: Prompts the model to respond only with the numerical answer.
-- **Chain of Thought** Baseline plus instructing the model to think step-by-step.
-- **One Shot** Baseline plus providing a user/assistant history of one question and (chain of thought) answer from the training datasplit from GSM8K.
+- **Chain of Thought**: Baseline plus instructing the model to think step-by-step.
+- **One Shot**: Baseline plus providing a user/assistant history of one question and (chain of thought) answer from the training datasplit from GSM8K.
 
 See the [Results](#results) section below for examples of exact phrasing of prompt strategies.
 
