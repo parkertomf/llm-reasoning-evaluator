@@ -259,3 +259,10 @@ One thing that strikes me is that the model doesn't consider whether the numbers
 50. &nbsp;
     - logical reasoning
     - 25+20 instead of 25-20
+
+
+| | Logical Reasoning Error | Misread Question | Math Error | Hallucination | Forgetting |
+|---|---|---|---|---|---|
+| One Shot | 2<br>5<br>7<br>15<br>41<br>76<br>98 | 11<br>29<br>58<br>65<br>66<br>97 | 67<br>73<br>82 | 47<br>85 | 27<br>29 |
+| Baseline | | | | | |
+| Chain of Thought | | | | | |
