@@ -48,6 +48,7 @@ class TestUtils:
         with results_file_path.open('a') as res:
             for i, _ in enumerate(MOCK_MODEL_RESPONSES):
                 result_record = ResultRecord(
+                    question_index=i,
                     formatted_prompt=MOCK_FORMATTED_PROMPTS[i],
                     model_response=MOCK_MODEL_RESPONSES[i],
                     extracted_model_answer=EXPECTED_EXTRACTED_ANSWERS[i],
@@ -85,6 +86,7 @@ class TestUtils:
         results_file_path = tmp_path / "results.jsonl"
         with results_file_path.open('a') as res:
             result_record = ResultRecord(
+                question_index=0,
                 formatted_prompt=MOCK_FORMATTED_PROMPTS[0],
                 model_response=MOCK_MODEL_RESPONSES[0],
                 extracted_model_answer=EXPECTED_EXTRACTED_ANSWERS[0],

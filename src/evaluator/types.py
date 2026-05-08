@@ -20,6 +20,7 @@ class ResultRecord:
     
     Used in the results output jsonl file.
     """
+    question_index: int
     formatted_prompt: str
     model_response: str
     extracted_model_answer: str

@@ -32,7 +32,7 @@ def main():
                 errors.write(lines[i])
                 count += 1
             i += 1
-        print(f"{count} failures found by position {i}.")
+        print(f"{count} failures found by position {i - 1}.")
 
 
 def get_command_line_args():
