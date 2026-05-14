@@ -24,21 +24,20 @@ class Gsm8kDatasetWrapper:
 
         # Everything for a prompt aside from a question
         self.base_messages = [{"role": "system", "content": BASE_SYSTEM_CONTENT}]
-        match self.prompt_strategy:
-            case "answer-only":
-                self.base_messages[0][
-                    "content"] = "For each question, respond only with your numerical answer."
-            case "cot":
-                self.base_messages[0][
-                    "content"] = f"Explain your answer step by step.\n{BASE_SYSTEM_CONTENT}"
-            case "one-shot":
-                self.base_messages.extend([{
-                    "role": "user",
-                    "content": dataset["train"][0]["question"]
-                }, {
-                    "role": "assistant",
-                    "content": dataset["train"][0]["answer"]
-                }])
+        if prompt_strategy == "answer-only":
+            self.base_messages[0][
+                "content"] = "For each question, respond only with your numerical answer."
+        if prompt_strategy in ("cot", "cot-one-shot"):
+            self.base_messages[0][
+                "content"] = f"Explain your answer step by step.\n{BASE_SYSTEM_CONTENT}"
+        if prompt_strategy in ("one-shot", "cot-one-shot"):
+            self.base_messages.extend([{
+                "role": "user",
+                "content": dataset["train"][0]["question"]
+            }, {
+                "role": "assistant",
+                "content": dataset["train"][0]["answer"]
+            }])
 
     def get_messages(self, question: str) -> list[dict]:
         return self.base_messages + [{"role": "user", "content": question}]

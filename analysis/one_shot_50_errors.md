@@ -275,6 +275,8 @@ I'm not going to perform a statistical analysis on this, but it seems pretty cle
 
 All 50 Version (unfinished, TODO: port in google sheets version)
 
+ToDo: Add thought process on trying cot-one-shot and thoughts about results
+
 | | One Shot | Baseline | Chain of Thought |
 |---|---|---|---|
 | Logical Reasoning Error | 2 <br> 5 <br> 7 <br> 15 <br> 41 <br> 76 <br> 98 | unknown <br> unknown <br> CORRECT <br> EF (correct) <br> unknown <br> unknown <br> unknown | EF (forgetting, reasoning) <br> reasoning <br> EF (reasoning, misunderstood/hallucinate, forgetting) <br> EF (had #### but) (correct) <br> misunderstood <br> forgetting <br> EF (reasoning) |
