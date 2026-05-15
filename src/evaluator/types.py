@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, get_args
 
-StrategyType = Literal["baseline", "answer-only", "cot", "one-shot", "cot-one-shot"]
+StrategyType = Literal["baseline", "answer-only", "cot", "one-shot", "one-shot-and-cot", "one-shot-of-cot"]
 VALID_PROMPTING_STRATEGIES = get_args(StrategyType)
 
 

@@ -275,7 +275,7 @@ I'm not going to perform a statistical analysis on this, but it seems pretty cle
 
 All 50 Version (unfinished, TODO: port in google sheets version)
 
-ToDo: Add thought process on trying cot-one-shot and thoughts about results
+ToDo: Add thought process on trying one-shot-and-cot and thoughts about results
 
 | | One Shot | Baseline | Chain of Thought |
 |---|---|---|---|

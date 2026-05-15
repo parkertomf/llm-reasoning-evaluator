@@ -14,7 +14,9 @@ Prompt strategy options include:
 - **Baseline**: Prompts the model to give the answer in a specific extractible way, but provides no other instructions.
 - **Answer Only**: Prompts the model to respond only with the numerical answer.
 - **Chain of Thought**: Baseline plus instructing the model to think step-by-step.
-- **One Shot**: Baseline plus providing a user/assistant history of one question and (chain of thought) answer from the training datasplit from GSM8K.
+- **One Shot**: Baseline plus providing a user/assistant history of one question and answer (with reasoning) from the training datasplit of GSM8K.
+- **One Shot and Chain of Thought**: Combines one shot and chain of thought, i.e. the one shot user and assistant prompts plus the chain of thought system prompt.
+- **One Shot of Chain of Thought**: One shot, but the stock example response is replaced with the model's own chain of thought output to the example question.
 
 See the [Results](#results) section below for examples of exact phrasing of prompt strategies.
 
@@ -254,3 +256,6 @@ See the [Sample Results](#sample-results) section above for examples of exact ph
 - Analyze tradeoffs, add to ReadME
 - Potentially add further prompting variants (two shot, few shot...)
 - Potentially add other models or datasets
+
+
+![alt text](image.png)
