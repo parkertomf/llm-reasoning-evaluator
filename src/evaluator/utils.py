@@ -24,7 +24,7 @@ def log_results(
             correct_answer = dataset.correct_answers[i + start]
             answer_status = dataset.get_answer_status(extracted_model_answer, correct_answer)
             result_record = ResultRecord(
-                index=i + start,
+                index=i+start,
                 formatted_prompt=formatted_prompts[i],
                 model_response=model_responses[i],
                 extracted_model_answer=extracted_model_answer,
