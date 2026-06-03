@@ -1,11 +1,4 @@
-Summary for now:
-Math: 9
-misunderstood question: 11
-logical reasoning: 13
-hallucination: 4
-extraction: 10
-
-My revised counts:
+Counts:
 Math: 6
 logical reasoning: 15
 misunderstanding: 13
@@ -13,28 +6,6 @@ hallucination: 3
 forgetting: 2
 extraction: 10
 unknown: 1
-
-just going to discard the secondary point for now and acknowledge that it exists in my analysis with an example or two
-
-I want to take the numbers with a grain of salt, since as I said earlier, the overall rate for extraction failures in the full dataset was 10%, and it's 20% here, which is very different.
-
-I should write about how I already added the guide on how to extract with an example. Compare those.
-
-
-
-Of course to some extent without further diving into interpretability, you can't fully know. Perhaps a model misunderstands a question but it appears as a logical reasoning error in the problem. Or they do math wrong but don't write it down and then it appears like... logical reasoning? (hmm maybe thats why there is a lot of reasoning errors? but i digress). so you never really know. but we're just going off what we can observe. much as i scientist watching a mouse's behavior has all that to go on, and not its internal experience, so too this is all i have (though of course in theory a much deeper dive is possible). But continuing the metaphor to animal brains, the thing is, there is a why for every mistake? Why did they get this wrong? Well they misundestood. Well why did they misunderstand? Etc. So you have to choose the cut it off at some point, and my cutting off point is what we can see in the output and surmise from.
-
-there are not obviously clean boundaries between categories
-
-obviously we can see not a perfection sample, unsurpirisingly, since double the rate of extraction failures of the full set (which had a 90% extraction rate), but it's still something
-
-Use the categories by where the first decisive failure happens. Don’t try to label every flaw; label the earliest/main flaw that makes the answer unrecoverable.
-
-of course the thing is that especially for extraction failures, that doesn't mean solving that will make it right. there are plenty of extraction failures where what was failed to be extracted was a wrong answer. For example, question 6. Less obviously, this is also true for other problems, though with a lesser frequency. Sometimes it starts bad and gets worse. For example, 33. Or 35.
-
-Also often it's not totally clear which category it fits into. The only source of info is the model's response, and sometimes that is insufficient to categorize. For example, problem 42. the model could have the info and then use it wrong or could have filed the info wrong in the first place. I feel like it's hard to say based on what the model says. In these cases, I just categorize it as "unknown."
-
-One thing that strikes me is that the model doesn't consider whether the numbers make sense. Like question 49, where it thinks the 16 oz can is a measurement after reduction rather than a measurement before reduction, which of course makes no sense, why would a can be labeled by some amount it is ultimately reduced to be the cook. Or even more egregiously, Question 21 is most striking in this regard, suggesting a distance of -200 feet, which obviously doesn't make any sense. 
 
 1. &nbsp;
    - logical reasoning error
@@ -261,22 +232,6 @@ One thing that strikes me is that the model doesn't consider whether the numbers
     - 25+20 instead of 25-20
 
 
-Baseline seems to more frequently than others erroneously think that we need a decimal.
-
-Of course, the sample size is small—if you really wanted reliable conclusions from this, you'd want to test every single problem, and that is more time than I am willing to dedicate, as this is very time consuming. It makes me appreciate the work of scientists, not to mention the power of AI. It reminds me of the achievements of AlphaFold, which found the structure of 200 million proteins, whereas one person's entire PhD might have been one protein beforehand.
-
-\#### Final Answer: 4 does not work
-but \#### 4 bags does
-because of the way match group(1) works
-
-One interesting phenmonenon in the baseline cases was that it would give an answer with no thought with #### to start, and then give a bunch of logic and get to a different answer, which in some cases was correct, like on question 45. Sometimes it also gave a wrong answer. Sometimes it took its original answer as an assumed fact, as in 11.
-
-I'm not going to perform a statistical analysis on this, but it seems pretty clear to me that their is a relationship of type of error between prompting strategies—many of the reasoning errors for one shot were also reasoning errors for chain of thought. Same for misunderstood question. The other 3 are smaller so it's harder to see a pattern, though the 2-for-2 with forgetting seems noteworthy.
-
-All 50 Version (unfinished, TODO: port in google sheets version)
-
-ToDo: Add thought process on trying one-shot-and-cot and thoughts about results
-
 | | One Shot | Baseline | Chain of Thought |
 |---|---|---|---|
 | Logical Reasoning Error | 2 <br> 5 <br> 7 <br> 15 <br> 41 <br> 76 <br> 98 | unknown <br> unknown <br> CORRECT <br> EF (correct) <br> unknown <br> unknown <br> unknown | EF (forgetting, reasoning) <br> reasoning <br> EF (reasoning, misunderstood/hallucinate, forgetting) <br> EF (had #### but) (correct) <br> misunderstood <br> forgetting <br> EF (reasoning) |
@@ -284,35 +239,3 @@ ToDo: Add thought process on trying one-shot-and-cot and thoughts about results
 | Math Error | 12 <br> 31 <br> 45 <br> 67 <br> 73 <br> 82 | reasoning <br> unknown <br> unknown <br> unknown <br> unknown <br> unknown | reasoning <br> CORRECT <br> EF (correct) <br> EF (correct) <br> EF (correct) <br> CORRECT |
 | Hallucination | 36 <br> 47 <br> 85 | unknown <br> unknown <br> unknown | CORRECT <br> CORRECT <br> EF (misunderstood) |
 | Forgetting | 50 <br> 54 | unknown <br> unknown | EF (forgetting) <br> EF (forgetting)  |
-
-
-
-Results from below:
-CoT:
-correct = 8
-forg = 5
-reas = 4
-misunderstood = 2
-math = 1
-halluc = 0
- 
-| | One Shot | Baseline | Chain of Thought |
-|---|---|---|---|
-| Logical Reasoning Error | 2 <br> 5 <br> 7 <br> 15 <br> 41 <br> 76 <br> 98 | unknown <br> unknown <br> CORRECT <br> EF (correct) <br> unknown <br> unknown <br> unknown | EF (forgetting, reasoning) <br> reasoning <br> EF (reasoning, misunderstood/hallucinate, forgetting) <br> EF (had #### but) (correct) <br> misunderstood <br> forgetting <br> EF (reasoning) |
-| misunderstood Question | 11 <br> 29 <br> 58 <br> 65 <br> 66 <br> 97 | math error <br> unknown <br> unknown <br> unknown <br> unknown <br> unknown | EF (math, same result as baseline) <br> CORRECT (realizes mistake) <br> EF (reasoning) <br> EF (correct) <br> Forgetting, Reasoning <br> CORRECT |
-| Math Error | 67 <br> 73 <br> 82 | unknown <br> unknown <br> unknown | EF (correct) <br> EF (correct) <br> CORRECT |
-| Hallucination | 47 <br> 85 | unknown <br> unknown | CORRECT <br> EF (misunderstood) |
-| Forgetting | 50 <br> 54 | unknown <br> unknown | EF (forgetting) <br> EF (forgetting)  |
-
-
-
-
-| | Logical Reasoning Error | Misunderstood Question | Math Error | Hallucination | Forgetting | Unknown Error | Extraction Failure | CORRECT |
-|---|---|---|---|---|---|---|---|---|
-| One Shot | 2<br>5<br>7<br>15<br>41<br>76<br>98 |11<br>29<br>58<br>65<br>66<br>97 | 67<br>73<br>82 | 47<br>85 | 27<br>29 | | |
-| Baseline | | | | | | 2<br>5<br>41<br>76<br>98 | 15 (but correct, and with thoughts) | 7 |
-| Chain of Thought | | | | | | | | |
-
-
-There are many ways to analyze the data, I could only do so much. I decided to pick 50 errors from one-shot, since it was the best performer overall, and then compare it to the results of other types for the same problems.
-Chain of thought did better assuming successful extraction, so I figured a lot could be learned from it.

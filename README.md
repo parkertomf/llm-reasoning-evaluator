@@ -72,6 +72,9 @@ If you encounter rate limit warnings when downloading on the first run, and it i
     ```
 
 ## Results
+
+For analysis of results, see the analysis document in the analysis directory [here](analysis/analysis.md).
+
 ### Getting Your Own Results
 
 Results from local runs are stored in the `output` directory. For each run, both a `<timestamp>_<question-count>_<prompt-strategy>_results.jsonl` and `<timestamp>_<question-count>_<prompt-strategy>_summary.json` are produced. The former contains details for each question/answer in the run, and the latter contains summary information for the run overall.
@@ -79,7 +82,7 @@ Results from local runs are stored in the `output` directory. For each run, both
 ### Sample Results
 
 Here is a real example in the terminal:
-![alt text](terminal_example.png)
+![example showing terminal output from a verbose run of eval](assets/terminal_example.png)
 
 Here are real examples of the `json` produced for the summary file for each prompting strategy, as well as the first line (first question from GSM8K) of the `jsonl` (note that the both have been prettified for the purposes of readability here to be more than one line):
 
@@ -291,9 +294,9 @@ Note that these results come from running the evaluations with no command line a
 - Question Count: `1319` (all of the test questions in GSM8K)
 - Max New Tokens: `1024` (although answer only performs just as well with as few as 8, and execution time remains around 30 seconds)
 
-### Analysis
+## Analysis
 
-See the analysis document in the analysis directory [here](analysis/analysis.md).
+See the analysis document in the analysis directory [here](analysis/analysis.md) for extensive analysis of the above results as well as a deep dive into different types of errors (manually categorized), cross-strategy comparisons therein, and the prompt iteration leading to the `One Shot and Chain of Thought` and `One Shot of Chain of Thought` prompt strategies.
 
 ## Implementation Notes
 ### Batch Size
@@ -306,12 +309,13 @@ With the exception of the answer only prompting method, GSM8K evaluation follows
 https://github.com/openai/grade-school-math/blob/master/grade_school_math/dataset.py
 
 ### Prompt Format
-For each prompt strategy, I experimented with various formats until I was satisfied. These are author-designed prompt variants, not benchmark-optimized prompts.
+TODO: something here, maybe more, maybe less, talking about Analysis section?..
+For each prompt strategy, I experimented informally with various formats until I was satisfied. These are author-designed prompt variants, not benchmark-optimized prompts.
 
-All prompts, with the exception of answer only (which requests the numerical answer in isolation), request that the numerical response be prefixed with "#### ", and they all give an example of that format. Further analysis could be done without that example; in my experience, extraction success suffers without it, unsurprisingly.
+All prompts, with the exception of answer only (which requests the numerical answer in isolation), request that the numerical response be prefixed with "#### ", and they all give an example of that format, which improves extraction success rate. Further analysis could be done without that example or with other ways of giving an example.
 
 See the [Sample Results](#sample-results) section above for examples of exact phrasing of prompt strategies.
 
-## Next Steps
-- Potentially add further prompting variants (two shot, few shot...)
-- Potentially add other models or datasets
+## Future Direction
+
+See the section of the same title in the analysis document found in the analysis directory [here](analysis/analysis.md#future-direction).
