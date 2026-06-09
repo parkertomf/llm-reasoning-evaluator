@@ -6,10 +6,10 @@ Note that whenever reference is made to a question number, it is by its index in
 
 ### Summary Comparison
 
-This summary table is identical to that in the README and is replicated here for the reader's convenience.
+This summary table is replicated here from the [README](../README.md#summary-comparison-between-prompting-strategies) for the reader's convenience. The sole addition is prompt strategy acronyms.
 
 | Strategy | Accuracy | Extraction Success Rate  | Accuracy on Extraction Success |
-| :--- | :---: | :---: | :---: |
+|:---|---:|---:|---:|
 | **One Shot and Chain of Thought (OS-and-CoT)** | 55.9% | 97.0% | 57.6% |
 | **One Shot (OS)** | 51.9% | 90.7% | 57.2% |
 | **Chain of Thought (CoT)** | 37.0% | 51.9% | 71.2% |
@@ -24,6 +24,8 @@ OS-and-CoT has the overall best accuracy due to its excellent extraction rate an
 CoT has by far the best accuracy on extraction success, but remains middling in overall accuracy due to a poor extraction success rate, at which it is only better than OS-of-CoT.
 
 Merely suggesting thinking step by step (CoT) causes a drastic drop in extraction success rate compared to BL (51.9% vs 92.7%). This goes to show that it is easy to overload smaller models on instructions—add the "Explain your answer step by step," and the "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'" is often forgotten.
+
+I suspect that the above does not occur for OS because while BL and CoT have a formatting-specific one-shot embedded in the prompt ("For example: '#### 42'"), OS's example response includes appropriate formatting as well, which makes it two-shot with respect to formatting, strengthening the model's extraction rate.
 
 BL is the worst, even worse than AO, even when ignoring extraction as a factor. This is surprising since using its response to think through an answer typically makes a model perform better—that is the whole idea behind CoT as a methodology, and AO makes it answer without any of that thinking. However, as the [Cross-Strategy Comparison](#cross-strategy-comparison) section below reveals, BL rarely contained a response beyond the answer, either. But that only explains why BL does not do meaningful better than AO, not why it does meaningfully worse, so it remains surprising.
 
@@ -69,7 +71,7 @@ In logical reasoning errors, the model does the wrong things with the right fact
 
 #### Hallucination
 
-Hallucinations are when the model introduces information that is nowhere in the problem. If it misinterprets, misapplies, or fails to apply information that is in the problem, that is one of the other categories. There is a small sample size for hallucinations, with only 3 in these 50, but in all of the cases, the model introduced a number not present in the prompt. It pulls out of thin air for example, the number of blue ties purchased, wehen that information is not given (47).
+Hallucinations are when the model introduces information that is nowhere in the problem. If it misinterprets, misapplies, or fails to apply information that is in the problem, that is one of the other categories. There is a small sample size for hallucinations, with only 3 in these 50, but in all of the cases, the model introduced a number not present in the prompt. It pulls out of thin air, for example, the number of blue ties purchased, when that information is not given (47).
 
 #### Forgetting
 
@@ -166,8 +168,7 @@ The following table is sorted by OS error type and then by question number.
 | 50 | forgetting | forgetting (EF) | unknown |
 | 54 | forgetting | forgetting (EF) | unknown |
 
- 
-**\*** Q94 and Q45, Baseline: reasoned to the correct answer but emitted a wrong answer first; the automated scoring thus counts these as wrong answers. Similarly to an extracion failure, however, their reasoning can still be evaluated independently of this mishap. These dual-answer self-contradiction cases occurred other times in BL responses; however, these were the only instances wherein the non-emitted answer was correct.
+> **\*** Q94 and Q45, Baseline: reasoned to the correct answer but emitted a wrong answer first; the automated scoring thus counts these as wrong answers. Similarly to an extracion failure, however, their reasoning can still be evaluated independently of this mishap. These dual-answer self-contradiction cases occurred other times in BL responses; however, these were the only instances wherein the non-emitted answer was correct.
 
 ### Outcome Distribution Overall
 
@@ -182,7 +183,7 @@ The following table is sorted by OS error type and then by question number.
 | unknown | 0 | 0 | 30 |
 | *extraction failures* | — | 18 | 2 |
 
-**Note:** The *extraction failures* row is orthogonal to the others; it counts cells flagged `(EF)` in the [Per-Question Breakdown Table](#per-question-breakdown) above.
+> **Note:** The *extraction failures* row is orthogonal to the others; it counts cells flagged `(EF)` in the [Per-Question Breakdown Table](#per-question-breakdown) above.
 
 ### Outcome Distribution by Error Type
 
@@ -219,7 +220,7 @@ There are two important takeaways from this comparison.
 
 #### 1. Error type persists across strategies
 
-In other words, the error type is more about the problem than the prompting strategy: certain questions trip the model up in similar ways regardless of prompt.
+In other words, the error type is more about the problem than the prompting strategy: certain questions trip the model up in similar ways regardless of prompt. This suggests model-level rather prompt-level limitations.
 
 If one examines the diagonal on the [outcome distribution by error type for CoT](#chain-of-thought), it is clear that for each category, overall, CoT tends to err in the same way as OS:
 - 8/10 CoT errors on questions where OS had a logical reasoning error are also logical reasoning errors for CoT
@@ -238,3 +239,75 @@ As mentioned above, CoT resolved 5/6 of OS's math errors. That is an 83% correct
 
 Hallucinations in this sample also improve substantially, with 2/3 of the OS hallucination problems resolved in CoT. There are zero hallucination errors among the 39 problems for CoT (although this has the same caveat as with math of reduced weight given error type persistence). One possible mechanism for hallucination improvement by CoT is that it is during a skipped intermediate step that the model hallucinates, and forcing step-by-step thinking grounds the model in those steps, preventing the error from occurring. But this is more of a stretch than the logic for math problems, and given tiny sample size of 3, this data is suggestive but not conclusive that CoT improves performance on hallucination-inclined problems compared to OS.
 
+## Refinement Attempts
+
+Given the results of the [Comparison Analysis](#comparison-analysis) above, I thought that integrating CoT into OS could produce a drastic improvement in overall accuracy by strengthening math and (perhaps) hallucination performance while still retaining OS's excellent extraction rate.
+
+While even those two categories added together are fewer in number than either logical reasoning errors or misunderstanding the question alone (9 vs 15 and 13), the path forward here based on the data is much more informed than the path forward for improving either of the latter two categories. In other words, it is the low hanging fruit.
+
+Furthermore, regardless of impact on these two particular categories, I already knew that CoT has a better overall accuracy on extraction success than OS does from initial summary data (see: [Summary Comparison](#summary-comparison)), so that is another reason to think that combining the two would be fruitful.
+
+### One Shot and Chain of Thought
+
+My first idea was to simply put both the OS and CoT prompts in with no other changes. The text of the prompts do not conflict and can easily coexist—no reason to complicate it. This became OS-and-CoT. See the [Sample Results](../README.md#sample-results) section of the README for an example of the OS-and-CoT prompt.
+
+My only fear was that based on past experience, one has to be careful with overloading smaller models with too many instructions. The more you add, the more likely each piece is to be lost. As mentioned in the [Initial Analysis](#initial-analysis), this is what seems to happen to CoT—the CoT instruction makes it harder for the model to remember the formatting instruction, and thus, the extraction rate plummets.
+
+However, my hope was that given that OS manages to retain a very good extraction rate despite having a much larger prompt than CoT, that that would be the predominant force even when adding the CoT instruction. (As mentioned in the [Initial Analysis](#initial-analysis), I theorize that OS has a great extraction rate because it has a two-shot formatting instruction as opposed to BL and CoT's one-shot formatting instruction—all 3 have the "For example: '#### 42'" in the base prompt, but OS also demonstrates appropriate answer formatting a second time naturally as part of the example question and answer.)
+
+#### OS-and-CoT Results
+
+The results did not go as I expected. OS-and-CoT was neither the best of both worlds nor the worst, nor somewhere in the middle, nor some other clear combination. This is a more interesting finding than if it had worked as expected.
+
+| Strategy | Accuracy | Extraction Success Rate  | Accuracy on Extraction Success |
+|---|---:|---:|---:|
+| **OS-and-CoT** | 55.9% | 97.0% | 57.6% |
+| **OS** | 51.9% | 90.7% | 57.2% |
+| **CoT** | 37.0% | 51.9% | 71.2% |
+
+> **Note:** The summary results above can also be found in the [Initial Analysis](#initial-analysis) and [here](../README.md#summary-comparison-between-prompting-strategies) in the README, where the other prompting strategies are also included.
+
+The extraction success rate was even better than I could have hoped for, at an extraordinary 97%, substantially better than ordinary OS. Indeed, this carries OS-and-CoT to being the strongest strategy overall, which is great. However, the accuracy on extraction success was almost identical to that of OS; the benefits of CoT were not carried over.
+
+This raises two questions:
+1. Why does the CoT prompt not exert obvious influence anywhere? All the stats are clearly much closer to those of OS than of CoT.
+2. Why is the extraction rate even better than OS's, instead of being the same or dragged down by CoT?
+
+#### 1. Why no apparent CoT influence?
+
+I assert that this is simply because concrete examples dominate abstract instruction. The two signals compete, and OS wins out.
+
+Empirical results demonstrate this. Consider the responses to GSM8K question 0 for each prompting strategy below:
+
+| Question |
+|---|
+| Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers' market? | 
+
+| Strategy | Model Response |
+|---|---| 
+| **OS** | `Janet's ducks lay a total of 16*3 = <<16*3=48>>48 eggs for breakfast.\nShe also uses up 4*3 = <<4*3=12>>12 eggs to bake muffins for her friends.\nSo Janet has 48-12-3 = <<48-12-3=33>>33 eggs left over.\n\nTherefore, Janet makes 33*2 = <<33*2=66>>66 dollars every day at the farmers' market.\n\n#### 66` | 
+| **CoT** | `To determine how much Janet makes from selling the eggs at the farmers' market every day, we need to follow these steps:\n\n1. **Calculate total eggs laid per day**: \n   - Janet's ducks lay 16 eggs per day.\n\n2. **Determine the number of eggs eaten for breakfast**:\n   - Janet eats 3 eggs for breakfast every morning.\n   \n3. **Calculate remaining eggs after breakfast**:\n   - Remaining eggs = Total eggs - Eggs eaten for breakfast\n   - Remaining eggs = 16 - 3 = 13\n\n4. **Determine the number of eggs used to bake muffins**:\n   - Janet uses 4 eggs to bake muffins for her friends every day.\n\n5. **Calculate remaining eggs after baking muffins**:\n   - Remaining eggs = Remaining eggs after breakfast - Eggs used for muffins\n   - Remaining eggs = 13 - 4 = 9\n\n6. **Calculate earnings from selling the remaining eggs**:\n   - Janet sells each egg for $2.\n   - Earnings = Remaining eggs * Price per egg\n   - Earnings = 9 * $2 = $18\n\nTherefore, Janet makes $18 every day at the farmers' market.\n\nFinal Answer: $#### 18` | 
+| **OS-and-CoT** | `First find how many eggs Janet eats for breakfast: 3 eggs/day * 5 days = <<3*5=15>>15 eggs.\nThen subtract that number from the total number of eggs laid to find out how many are left over: 16 eggs - 15 eggs = <<16-15=1>>1 egg.\nNow multiply the number of leftover eggs by the price per egg to find out how much money she makes: 1 egg * $2/egg = $<<1*2=2>>2.\n\n#### 2` |
+
+> **Note:** The entire result (i.e. the first line from the result output `jsonl` file) for each prompting strategy can be found in the README [here](../README.md#sample-results).
+
+Observe how similar the response for OS and OS-and-CoT are when compared to CoT. Three notable points:
+1. Most obviously, OS and OS-and-CoT are much shorter than CoT, which is certainly indicative of less step by step thinking.
+2. More granularly, both OS and OS-and-CoT have GSM8K style math notation. OS has `<<16*3=48>>48` and OS-and-CoT has `<<3*5=15>>15`. This is not found the CoT response.
+3. CoT's response is more structured, each step having both a title and a number.
+
+Clearly, in this example, the OS instruction has a much larger effect on how the model responds than the CoT instruction does, to the point that former overrides the latter. So it is unsurprising that at an aggregate level OS-and-CoT performs similarly to OS, lacking any similarlity to CoT results.
+
+In my opinion, this is a case where the model behaves similarly to a human. If told to think step by step and given an example of how to respond, one assumes that that example is a good example of how to respond step by step (and certainly, the GSM8K-style response *is* step by step, just not to the extent of the CoT responses). Furthermore, and perhaps more importantly, following an existing format is just much easier than pioneering one's own. If I were taught a new mathematics concept, the theory is all well and good, but it does not truly make sense without an example, and the example is what I would keep looking back at when trying to solve my own problems.
+
+This result also goes to show that stock GSM8K answers are not "full" chain of thought. Certainly, there is some level of that, but it is not at the level of detail that model presumes should be done for CoT without an example (and interestingly, most of the BL responses that do have reasoning as opposed to being just the answer are closer to the CoT style, as well).
+
+In short, the OS instruction not only fixes the output format, but also provides a structure for how to respond that is not like how the model responds when asked to do CoT without an example. And if you do not have to think of a format, why bother? Use the format you are given.
+
+#### 2. Why is the extraction rate so good?
+
+The only possibility that occurs to me is that the step by step thinking instruction makes adding the "#### " before the answer feel like a natural final *step*, leading the model to view it as more important.
+
+Initially, I found this explanation to be unsatisfactory. It assumes that the model remembers to handle things step by step at all, and yet considering that we do not see the more expected results from CoT characteristic of thinking step by step, it seems presumptious to conclude it would work in this new way.
+
+However, the conclusions of question one actually reinforce this theory. They explain why we lose all the other aspects of CoT—the abstract CoT instruction is drowned out by the concrete OS example. If anything, the CoT instruction perhaps reinforces the OS behavior, insofar as it is step by step. But part of that reinforced behavior is the extraction rate, so while most of the expected effects of CoT drown out, this improved extraction rate surfaces.

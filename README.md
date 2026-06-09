@@ -1,31 +1,24 @@
 ![Build Status](https://github.com/parkertomf/llm-reasoning-evaluator/actions/workflows/tests.yml/badge.svg)
 ![Build Status](https://github.com/parkertomf/llm-reasoning-evaluator/actions/workflows/lint.yml/badge.svg)
 
-# Automated Evaluation of LLM Reasoning (Work in Progress)
+# Automated Evaluation of LLM Reasoning
 
 ## Overview
 This LLM benchmarking pipeline evaluates the reasoning performance of large language models.
 
 The current scope is one model and one dataset:
 - The [Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) model
-- The [GSM8K](https://huggingface.co/datasets/openai/gsm8k) dataset of "basic mathematical problems that require multi-step reasoning."
+- The [GSM8K](https://huggingface.co/datasets/openai/gsm8k) dataset of "basic mathematical problems that require multi-step reasoning," using the test split of 1319 problems.
 
 Prompt strategy options include:
-- **Baseline**: Prompts the model to give the answer in a specific extractible way, but provides no other instructions.
-- **Answer Only**: Prompts the model to respond only with the numerical answer.
-- **Chain of Thought**: Baseline plus instructing the model to think step-by-step.
-- **One Shot**: Baseline plus providing a user/assistant history of one question and answer (with reasoning) from the training datasplit of GSM8K.
-- **One Shot and Chain of Thought**: Combines one shot and chain of thought, i.e. the one shot user and assistant prompts plus the chain of thought system prompt.
-- **One Shot of Chain of Thought**: One shot, but the stock example response is replaced with the model's own chain of thought output to the example question.
+- **Baseline (BL)**: Prompts the model to give the answer in a specific extractible way, but provides no other instructions.
+- **Answer Only (AO)**: Prompts the model to respond only with the numerical answer.
+- **Chain of Thought (CoT)**: BL plus instructing the model to think step-by-step.
+- **One Shot (OS)**: BL plus providing a user/assistant history of one question and answer (with reasoning) from the training datasplit of GSM8K.
+- **One Shot and Chain of Thought (OS-and-CoT)**: Combines OS and CoT, i.e. the OS user and assistant prompts plus the CoT system prompt.
+- **One Shot of Chain of Thought (OS-of-CoT)**: OS, but the stock example response is replaced with the model's own CoT output to the example question.
 
 See the [Results](#results) section below for examples of exact phrasing of prompt strategies.
-
-## Baseline Setup
-- Dataset: GSM8K (test split, 1319 problems)
-- Model: Qwen2.5-1.5B-Instruct
-- Decoding: Greedy (for reproducibility of results)
-- Max new tokens: 1024
-- Batch size: 32
 
 ## Running the Evaluation
 ### Requirements
@@ -49,16 +42,17 @@ pip install -r requirements.txt
 
 Note that the first run will download ~3GB, by default located at `C:\Users\<your-username>\.cache\huggingface`.
 
-**Command Line Arguments**
+#### Command Line Arguments
+
 | Argument | Short | Description |
-| :--- | :---: | :---: | 
+|---:|---:|:---| 
 | `--prompt-strategy` | `-ps` |  How the model is prompted before each question. Options: `baseline`, `answer-only`, `cot`, `one-shot`, `one-shot-and-cot`, `one-shot-of-cot` (default: `baseline`). |
 | `--question-count` | `-qc` | How many questions with which to prompt the model (default: `1319`—the total number of test questions in GSM8K). |
 | `--max-new-tokens` | `-mnt` | Max tokens for a model's response: low values may run faster; high values may increase performance (default: `1024`). Note that `answer-only` requires only `8` for performance. |
 | `--batch-size` | `-bs` | Batch size for each inference loop (default: `32`). |
 | `--verbose` | `-v` | Prints the summary data rather than only saving it to the summary file.|
 
-**Hugging Face Authentication (Optional)**
+#### Hugging Face Authentication (Optional)
 
 If you encounter rate limit warnings when downloading on the first run, and it is a problem for you, then:
 1. Create/login to Hugging Face: https://huggingface.co
@@ -84,7 +78,7 @@ Results from local runs are stored in the `output` directory. For each run, both
 Here is a real example in the terminal:
 ![example showing terminal output from a verbose run of eval](assets/terminal_example.png)
 
-Here are real examples of the `json` produced for the summary file for each prompting strategy, as well as the first line (first question from GSM8K) of the `jsonl` (note that the both have been prettified for the purposes of readability here to be more than one line):
+Here are real examples of the `json` produced for the summary file for each prompting strategy, as well as the first line (first question from GSM8K) of the `jsonl`. Note that the both have been prettified for the purposes of readability here to be more than one line. Click each prompting strategy name below to open the examples.
 
 <details>
 <summary><b>Baseline</b></summary>
@@ -281,7 +275,7 @@ Here are real examples of the `json` produced for the summary file for each prom
 ### Summary Comparison Between Prompting Strategies
 
 | Strategy | Accuracy | Extraction Success Rate  | Accuracy on Extraction Success |
-| :--- | :---: | :---: | :---: |
+|---|---:|---:|---:|
 | **One Shot and Chain of Thought** | 55.9% | 97.0% | 57.6% |
 | **One Shot** | 51.9% | 90.7% | 57.2% |
 | **Chain of Thought** | 37.0% | 51.9% | 71.2% |
@@ -292,17 +286,20 @@ Here are real examples of the `json` produced for the summary file for each prom
 Note that these results come from running the evaluations with no command line arguments aside from the prompt strategy, thus, for all of the above, the following were true:
 - Batch size: `32`
 - Question Count: `1319` (all of the test questions in GSM8K)
-- Max New Tokens: `1024` (although answer only performs just as well with as few as 8, and execution time remains around 30 seconds)
+- Max New Tokens: `1024` (although AO performs just as well with as few as 8, and execution time remains around 30 seconds)
 
 ## Analysis
 
-See the analysis document in the analysis directory [here](analysis/analysis.md) for extensive analysis of the above results as well as a deep dive into different types of errors (manually categorized), cross-strategy comparisons therein, and the prompt iteration leading to the `One Shot and Chain of Thought` and `One Shot of Chain of Thought` prompt strategies.
+See the analysis document in the analysis directory [here](analysis/analysis.md) for extensive analysis of the above results as well as a deep dive into different types of errors (manually categorized), cross-strategy comparisons therein, and the prompt iteration leading to the OS-and-CoT and OS-of-CoT prompt strategies.
 
 ## Implementation Notes
 ### Batch Size
-Based on experiments using answer only prompting, results vary slightly (<0.5%) across batch sizes likely due to batch size affecting PyTorch kernel selection and therefore the possibility of different token selection in some cases.
+Based on experiments using AO, results vary slightly (<0.5%) across batch sizes likely due to batch size affecting PyTorch kernel selection and therefore the possibility of different token selection in some cases.
 
 Execution time by batch size is a U-curve with a Goldilocks zone of efficiency: on my machine, experimentation suggests that the most accurate and most time-efficient batch size is in the range of 16-64, so I chose to stick with 32. Although accuracy was lower at both ends, extraction success rate remained relatively stable, suggesting that extraction success is not affected by batching, even though the model's ability to do the actual math is. An important caveat is that since the signal size of the accuracy variation is small (8.5%-8.9% range) range, it is not certain.
+
+### Greedy Decoding
+Used for reproducibility of results.
 
 ### Response Extraction
 With the exception of the answer only prompting method, GSM8K evaluation follows the standard answer extraction method used in the official repository, reimplemented here.
@@ -312,7 +309,7 @@ https://github.com/openai/grade-school-math/blob/master/grade_school_math/datase
 TODO: something here, maybe more, maybe less, talking about Analysis section?..
 For each prompt strategy, I experimented informally with various formats until I was satisfied. These are author-designed prompt variants, not benchmark-optimized prompts.
 
-All prompts, with the exception of answer only (which requests the numerical answer in isolation), request that the numerical response be prefixed with "#### ", and they all give an example of that format, which improves extraction success rate. Further analysis could be done without that example or with other ways of giving an example.
+All prompts, with the exception of AO (which requests the numerical answer in isolation), request that the numerical response be prefixed with "#### ", and they all give an example of that format, which improves extraction success rate. Further analysis could be done without that example or with other ways of giving an example.
 
 See the [Sample Results](#sample-results) section above for examples of exact phrasing of prompt strategies.
 
