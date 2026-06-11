@@ -251,7 +251,7 @@ Furthermore, regardless of impact on these two particular categories, I already 
 
 My first idea was to simply put both the OS and CoT prompts in with no other changes. The text of the prompts do not conflict and can easily coexist—no reason to complicate it. This became OS-and-CoT. See the [Sample Results](../README.md#sample-results) section of the README for an example of the OS-and-CoT prompt.
 
-My only fear was that based on past experience, one has to be careful with overloading smaller models with too many instructions. The more you add, the more likely each piece is to be lost. As mentioned in the [Initial Analysis](#initial-analysis), this is what seems to happen to CoT—the CoT instruction makes it harder for the model to remember the formatting instruction, and thus, the extraction rate plummets.
+My only fear was that based on past experience, one has to be careful with overloading smaller models with too many instructions. The more you add, the more likely each piece is to be lost. As mentioned in the [Initial Analysis](#initial-analysis), this is what seems to happen to CoT—the CoT instruction makes it harder for the model to remember the formatting instruction, and consequently, the extraction rate plummets.
 
 However, my hope was that given that OS manages to retain a very good extraction rate despite having a much larger prompt than CoT, that that would be the predominant force even when adding the CoT instruction. (As mentioned in the [Initial Analysis](#initial-analysis), I theorize that OS has a great extraction rate because it has a two-shot formatting instruction as opposed to BL and CoT's one-shot formatting instruction—all 3 have the "For example: '#### 42'" in the base prompt, but OS also demonstrates appropriate answer formatting a second time naturally as part of the example question and answer.)
 
@@ -283,7 +283,7 @@ Empirical results demonstrate this. Consider the responses to GSM8K question 0 f
 |---|
 | Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers' market? | 
 
-| Strategy | Model Response |
+| Strategy | Model Answer |
 |---|---| 
 | **OS** | `Janet's ducks lay a total of 16*3 = <<16*3=48>>48 eggs for breakfast.\nShe also uses up 4*3 = <<4*3=12>>12 eggs to bake muffins for her friends.\nSo Janet has 48-12-3 = <<48-12-3=33>>33 eggs left over.\n\nTherefore, Janet makes 33*2 = <<33*2=66>>66 dollars every day at the farmers' market.\n\n#### 66` | 
 | **CoT** | `To determine how much Janet makes from selling the eggs at the farmers' market every day, we need to follow these steps:\n\n1. **Calculate total eggs laid per day**: \n   - Janet's ducks lay 16 eggs per day.\n\n2. **Determine the number of eggs eaten for breakfast**:\n   - Janet eats 3 eggs for breakfast every morning.\n   \n3. **Calculate remaining eggs after breakfast**:\n   - Remaining eggs = Total eggs - Eggs eaten for breakfast\n   - Remaining eggs = 16 - 3 = 13\n\n4. **Determine the number of eggs used to bake muffins**:\n   - Janet uses 4 eggs to bake muffins for her friends every day.\n\n5. **Calculate remaining eggs after baking muffins**:\n   - Remaining eggs = Remaining eggs after breakfast - Eggs used for muffins\n   - Remaining eggs = 13 - 4 = 9\n\n6. **Calculate earnings from selling the remaining eggs**:\n   - Janet sells each egg for $2.\n   - Earnings = Remaining eggs * Price per egg\n   - Earnings = 9 * $2 = $18\n\nTherefore, Janet makes $18 every day at the farmers' market.\n\nFinal Answer: $#### 18` | 
@@ -291,9 +291,9 @@ Empirical results demonstrate this. Consider the responses to GSM8K question 0 f
 
 > **Note:** The entire result (i.e. the first line from the result output `jsonl` file) for each prompting strategy can be found in the README [here](../README.md#sample-results).
 
-Observe how similar the response for OS and OS-and-CoT are when compared to CoT. Three notable points:
+Observe how similar the responses of OS and OS-and-CoT are when compared to CoT's. Three notable points:
 1. Most obviously, OS and OS-and-CoT are much shorter than CoT, which is certainly indicative of less step by step thinking.
-2. More granularly, both OS and OS-and-CoT have GSM8K style math notation. OS has `<<16*3=48>>48` and OS-and-CoT has `<<3*5=15>>15`. This is not found the CoT response.
+2. More granularly, both OS and OS-and-CoT have GSM8K style math notation. OS has `<<16*3=48>>48` and OS-and-CoT has `<<3*5=15>>15`. This is not found in the CoT response.
 3. CoT's response is more structured, each step having both a title and a number.
 
 Clearly, in this example, the OS instruction has a much larger effect on how the model responds than the CoT instruction does, to the point that former overrides the latter. So it is unsurprising that at an aggregate level OS-and-CoT performs similarly to OS, lacking any similarlity to CoT results.
@@ -311,3 +311,44 @@ The only possibility that occurs to me is that the step by step thinking instruc
 Initially, I found this explanation to be unsatisfactory. It assumes that the model remembers to handle things step by step at all, and yet considering that we do not see the more expected results from CoT characteristic of thinking step by step, it seems presumptious to conclude it would work in this new way.
 
 However, the conclusions of question one actually reinforce this theory. They explain why we lose all the other aspects of CoT—the abstract CoT instruction is drowned out by the concrete OS example. If anything, the CoT instruction perhaps reinforces the OS behavior, insofar as it is step by step. But part of that reinforced behavior is the extraction rate, so while most of the expected effects of CoT drown out, this improved extraction rate surfaces.
+
+### One Shot of Chain of Thought
+
+Given how forcefully the OS example anchors the model's behavior, as demonstrated by the results in the above section, it was clear to me what to try next. Instead of using the first GSM8K training answer for the OS example, I would use a different answer strongly CoT in nature.
+
+A compelling means to accomplish this suddenly struck me. I temporarily modified my code to pass the GSM8K training questions to the model rather than the test questions, and then ran an iteration with the CoT prompt and a question count of 1. I then took the model's output from that as the OS example answer. From here I derive the name: the OS example is of a CoT response. As a result of this approach, the example style unequivocally matches the abstract instruction.
+
+#### OS-of-CoT Results
+
+| Strategy | Accuracy | Extraction Success Rate  | Accuracy on Extraction Success |
+|:---|---:|---:|---:|
+| **OS-and-CoT** | 55.9% | 97.0% | 57.6% |
+| **OS** | 51.9% | 90.7% | 57.2% |
+| **CoT** | 37.0% | 51.9% | 71.2% |
+| **OS-of-CoT** | 26.5% | 38.7% | 68.4% |
+
+This did not go well. OS-of-CoT is the worst of the four. However, poor performing results are not inherently a bad thing. From a research / scientific perspective, this is interesting and this is progress.
+
+Insofar as making it more like CoT than OS-and-CoT is, this was definitely a success. The accuracy on extraction success is clearly very similar to that of CoT as opposed to those of other prompting strategies. Unfortunately, the extraction success rate is also closer to CoT's than that of any other prompting strategy, but only in that CoT is now the second worst and OS-of-CoT is the worst—the difference is actually rather large. This weak extraction rate reduces the overall accuracy equally precipitously.
+
+Like with the [results of OS-and-CoT](#os-and-cot-results), the OS-of-CoT results present us with two questions.
+1. Why is the extraction success rate so poor?
+2. Although it is a small difference (2.8%), why is the accuracy on extraction success worse than CoT's?
+
+#### 1. Why is the extraction rate so bad?
+
+Here we are presented with the opposite question of OS-and-CoT. I was quite surprised that there was such a bad extraction rate. Given that OS and OS-and-CoT both have great ones, and that the main thing they have in common is OS, I assumed that OS where just the answer is different would also do well on extraction.
+
+But I hypothesize that this is simply due to the longer answer example. With a larger answer, the "#### " before the final answer is proportionally smaller and is therefore a weaker format signal.
+
+#### 2. Why does OS-of-CoT have a slightly worse accuracy on extraction success than CoT does?
+
+The most important point here is that this difference in results is small enough that it probably does not actually represent a difference in performance.
+
+Initially, I had assumed that this must be a statistically significant difference given that 1319 questions is a substantial sample size, but I had failed to consider an important variable. Accuracy on extraction success is graded, obviously, only on the problems where the answer is successfully extracted. But what that means is that comparing accuracy on extraction success between prompting strategies is not a completely like-for-like comparison, because the set of successfully extracted problems is different for different prompting strategies.
+
+So OS-of-CoT's accuracy on extraction success is graded on the 510 problems for which its answer was successfully extracted, and CoT's is graded on its 685 such problems. One might think that these sets are probably still representative, but we do not know that with certainty. It is possible, for example, that CoT is slightly better at producing an extractable answer for problems that are easier or that OS-of-CoT is slightly better at producing an extractable answer for problems that are harder. These differences would both explain the discrepancy here. And it is worth noting that the latter explanation would actually be the result of OS-of-CoT being better at something, yet appearing worse as a result.
+
+In short, the gap here may be partly or wholly an artifact of comparing different question subsets. However, that is not necessarily the case, either. It could be a real small gap in performance.
+
+I hypothesize the following as one possible explanation if it is a real difference. The OS example induces rigidity in the model's behavior, locking it into imitating the example's approach. This rigidity is not induced by the abstract CoT instruction. Some small subset of problems need an approach that the OS-of-CoT example does not demonstrate, and therefore benefit from the greater freedom allowed by CoT. So OS-of-CoT loses a few points on these problems. However, it would require much more data analysis to substantiate this hypothesis, but that is out of the current scope, so it remains untested and purely theoretical. See the [Future Direction](#future-direction) section below for more such matters.
