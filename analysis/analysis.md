@@ -6,9 +6,9 @@ Note that whenever reference is made to a question number, it is by its index in
 
 ### Summary Comparison
 
-This summary table is replicated here from the [README](../README.md#summary-comparison-between-prompting-strategies) for the reader's convenience. The sole addition is prompt strategy acronyms.
+This summary table is replicated here from the [README](../README.md#summary-comparison-between-prompting-strategies) for the reader's convenience. The sole addition is acronyms.
 
-| Strategy | Accuracy | Extraction Success Rate  | Accuracy on Extraction Success |
+| Strategy | Accuracy | Extraction Success Rate (ESR)  | Accuracy on Extraction Success (AoES) |
 |:---|---:|---:|---:|
 | **One Shot and Chain of Thought (OS-and-CoT)** | 55.9% | 97.0% | 57.6% |
 | **One Shot (OS)** | 51.9% | 90.7% | 57.2% |
@@ -19,19 +19,19 @@ This summary table is replicated here from the [README](../README.md#summary-com
 
 #### Initial Analysis
 
-OS-and-CoT has the overall best accuracy due to its excellent extraction rate and good accuracy on extraction success, with OS not far behind. See the [Refinement Attempts](#refinement-attempts) and [Tradeoffs](#tradeoffs) sections below for extensive commentary on OS-and-CoT as well as OS-of-CoT. Each of these were added as a result of error analysis.
+OS-and-CoT has the overall best accuracy due to its excellent ESR and good AoES, with OS not far behind. See the [Refinement Attempts](#refinement-attempts) section below for extensive commentary on OS-and-CoT as well as OS-of-CoT. Each of these were added as a result of error analysis.
 
-CoT has by far the best accuracy on extraction success, but remains middling in overall accuracy due to a poor extraction success rate, at which it is only better than OS-of-CoT.
+CoT has by far the best AoES, but remains middling in overall accuracy due to a poor ESR, at which it is only better than OS-of-CoT.
 
-Merely suggesting thinking step by step (CoT) causes a drastic drop in extraction success rate compared to BL (51.9% vs 92.7%). This goes to show that it is easy to overload smaller models on instructions—add the "Explain your answer step by step," and the "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'" is often forgotten.
+Merely suggesting thinking step by step (CoT) causes a drastic drop in ESR compared to BL (51.9% vs 92.7%). This goes to show that it is easy to overload smaller models on instructions—add the "Explain your answer step by step," and the "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'" is often forgotten.
 
-I suspect that the above does not occur for OS because while BL and CoT have a formatting-specific one-shot embedded in the prompt ("For example: '#### 42'"), OS's example response includes appropriate formatting as well, which makes it two-shot with respect to formatting, strengthening the model's extraction rate.
+I suspect that the above does not occur for OS because while BL and CoT have a formatting-specific one-shot embedded in the prompt ("For example: '#### 42'"), OS's example response includes appropriate formatting as well, which makes it two-shot with respect to formatting, strengthening the model's ESR.
 
 BL is the worst, even worse than AO, even when ignoring extraction as a factor. This is surprising since using its response to think through an answer typically makes a model perform better—that is the whole idea behind CoT as a methodology, and AO makes it answer without any of that thinking. However, as the [Cross-Strategy Comparison](#cross-strategy-comparison) section below reveals, BL rarely contained a response beyond the answer, either. But that only explains why BL does not do meaningful better than AO, not why it does meaningfully worse, so it remains surprising.
 
 ## Error Taxonomy and Distribution
 
-Before having added OS-of-CoT and OS-and-CoT, of which I had not yet conceived, I wanted to analyze the errors of the existing prompting methods with the hope that doing so would inform how to refine the prompts to create newer, better ones. Of course, that's what led to OS-of-CoT and OS-and-CoT.
+Before having added OS-of-CoT and OS-and-CoT, of which I had not yet conceived, I wanted to analyze the errors of the existing prompting methods with the hope that doing so would inform how to refine the prompts to create newer, better ones. Of course, that is what led to OS-of-CoT and OS-and-CoT.
 
 Since OS was the best performer among the original four in terms of overall accuracy, I chose to analyze its results to start.
 
@@ -79,7 +79,7 @@ Here, a model acknowledges information early, and then forgets to account for it
 
 #### Unknown
 
-In some cases, it is not clear which category an error fits into. The only source of information is the model's response, and sometimes that is insufficient to categorize with confidence. For OS, there was only one case of this in the 50 problems I examined, question 77. In this case, the model does not give enough information for it to be clear whether it misread a fact or it misapplied logic to correctly-read facts; in other words, it is not clear whether it is an issue of miusunderstanding the question or logical reasoning. To make the point clearer, AO responses, assuming the model actually does give only the answer, are always categorized as unknown errors when they are wrong—there is not enough reasoning visible to make a reliable conclusion as to what type of error it is. While other prompting strategies do usually having reasoning, that does not mean there is enough information in their responses, either. See more on this in the [Limitations](#limitations) section below.
+In some cases, it is not clear which category an error fits into. The only source of information is the model's response, and sometimes that is insufficient to categorize with confidence. For OS, there was only one case of this in the 50 problems I examined, question 77. In this case, the model does not give enough information for it to be clear whether it misread a fact or it misapplied logic to correctly-read facts; in other words, it is not clear whether it is an issue of miusunderstanding the question or logical reasoning. To make the point clearer, AO responses, assuming the model actually does give only the answer, are always categorized as unknown errors when they are wrong—there is not enough reasoning visible to make a reliable conclusion as to what type of error it is. While other prompting strategies do usually having reasoning, that does not mean there is enough information in their responses, either. See more on this in the [The ambiguity of the true source of an error](TODO) subsection of the  section below.
 
 ### Distribution
 
@@ -100,11 +100,11 @@ Misunderstanding the question is not far behind reasoning in count—close enoug
 
 There is a drop-off before the frequency of math problems, but there are still enough of these that improving them would be useful. In contrast, hallucination and forgetting are both uncommon enough that trying to improve them is not worthwhile for now.
 
-Improving extraction rate would certainly be helpful. After all, that is why OS has a better performance than CoT—its extraction rate is substantially better, enough to overcome its lower accuracy on extraction success. However, resolving an extraction error does not mean that the model will get the right answer. There are many extraction failures where what was failed to be extracted was itself a wrong answer, such as in question 8. Furthermore, I have already worked on improving the extraction rate informally as mentioned in the [Prompt Formatting](../README.md#prompt-format) section of the README.
+Improving ESR would certainly be helpful. After all, that is why OS has a better performance than CoT—its ESR is substantially better, enough to overcome its lower AoES. However, resolving an extraction error does not mean that the model will get the right answer. There are many extraction failures where what was failed to be extracted was itself a wrong answer, such as in question 8. Furthermore, I have already worked on improving the ESR informally as mentioned in the [Prompt Formatting](../README.md#prompt-format) section of the README.
 
 Less obviously, the point above regarding fixing extraction not necessarily leading to a correct answer is also true for error types other than extraction failures—that is to say, sometimes, there are multiple other error types in one response (though with a lesser frequency than when one is an extraction failure). For example, question 60 includes both misunderstanding the question and then later a math error. Resolving just one half of that would still produce a wrong answer.
 
-**A note on the sample size:** Compared to the overall 1319 set of test questions in GSM8K, 50 is a small sample size. However, one indication of good representativeness is that the extraction failure rate is very close to that of the rate in the full set. 10/50 or 20% of the failures in this sample are extraction failures compared to 123/635 in the full set or 19.4%. Of course, this does not necessarily mean that the proportions of the other error types are equally accurate, but it is nonetheless a good sign for the accuracy of the distribution in this sample relative to the full set. Crucially, though, this definitely does not mean that the sample size for each error type is necessarily large enough to make meaningful conclusions on it. When considered, for example, "How do forgetting errors tend to look?", it cannot be reliably determined from this data, since we only have a sample size of 2 for them. See more on this the [Limitations](#limitations) section.
+**A note on the sample size:** Compared to the overall 1319 set of test questions in GSM8K, 50 is a small sample size. However, one indication of good representativeness is that the extraction failure rate is very close to that of the rate in the full set. 10/50 or 20% of the failures in this sample are extraction failures compared to 123/635 in the full set or 19.4%. Of course, this does not necessarily mean that the proportions of the other error types are equally accurate, but it is nonetheless a good sign for the accuracy of the distribution in this sample relative to the full set. Crucially, though, this definitely does not mean that the sample size for each error type is necessarily large enough to make meaningful conclusions on it. When considered, for example, "How do forgetting errors tend to look?", it cannot be reliably determined from this data, since we only have a sample size of 2 for them. See more on this the [Limitations](#TODO) section.
 
 ## Cross-Strategy Comparison
 
@@ -241,25 +241,25 @@ Hallucinations in this sample also improve substantially, with 2/3 of the OS hal
 
 ## Refinement Attempts
 
-Given the results of the [Comparison Analysis](#comparison-analysis) above, I thought that integrating CoT into OS could produce a drastic improvement in overall accuracy by strengthening math and (perhaps) hallucination performance while still retaining OS's excellent extraction rate.
+Given the results of the [Comparison Analysis](#comparison-analysis) above, I thought that integrating CoT into OS could produce a drastic improvement in overall accuracy by strengthening math and (perhaps) hallucination performance while still retaining OS's excellent ESR.
 
 While even those two categories added together are fewer in number than either logical reasoning errors or misunderstanding the question alone (9 vs 15 and 13), the path forward here based on the data is much more informed than the path forward for improving either of the latter two categories. In other words, it is the low hanging fruit.
 
-Furthermore, regardless of impact on these two particular categories, I already knew that CoT has a better overall accuracy on extraction success than OS does from initial summary data (see: [Summary Comparison](#summary-comparison)), so that is another reason to think that combining the two would be fruitful.
+Furthermore, regardless of impact on these two particular categories, I already knew that CoT has a better overall AoES than OS does from initial summary data (see: [Summary Comparison](#summary-comparison)), so that is another reason to think that combining the two would be fruitful.
 
 ### One Shot and Chain of Thought
 
 My first idea was to simply put both the OS and CoT prompts in with no other changes. The text of the prompts do not conflict and can easily coexist—no reason to complicate it. This became OS-and-CoT. See the [Sample Results](../README.md#sample-results) section of the README for an example of the OS-and-CoT prompt.
 
-My only fear was that based on past experience, one has to be careful with overloading smaller models with too many instructions. The more you add, the more likely each piece is to be lost. As mentioned in the [Initial Analysis](#initial-analysis), this is what seems to happen to CoT—the CoT instruction makes it harder for the model to remember the formatting instruction, and consequently, the extraction rate plummets.
+My only fear was that based on past experience, one has to be careful with overloading smaller models with too many instructions. The more you add, the more likely each piece is to be lost. As mentioned in the [Initial Analysis](#initial-analysis), this is what seems to happen to CoT—the CoT instruction makes it harder for the model to remember the formatting instruction, and consequently, the ESR plummets.
 
-However, my hope was that given that OS manages to retain a very good extraction rate despite having a much larger prompt than CoT, that that would be the predominant force even when adding the CoT instruction. (As mentioned in the [Initial Analysis](#initial-analysis), I theorize that OS has a great extraction rate because it has a two-shot formatting instruction as opposed to BL and CoT's one-shot formatting instruction—all 3 have the "For example: '#### 42'" in the base prompt, but OS also demonstrates appropriate answer formatting a second time naturally as part of the example question and answer.)
+However, my hope was that given that OS manages to retain a very good ESR despite having a much larger prompt than CoT, that that would be the predominant force even when adding the CoT instruction. (As mentioned in the [Initial Analysis](#initial-analysis), I theorize that OS has a great ESR because it has a two-shot formatting instruction as opposed to BL and CoT's one-shot formatting instruction—all 3 have the "For example: '#### 42'" in the base prompt, but OS also demonstrates appropriate answer formatting a second time naturally as part of the example question and answer.)
 
 #### OS-and-CoT Results
 
 The results did not go as I expected. OS-and-CoT was neither the best of both worlds nor the worst, nor somewhere in the middle, nor some other clear combination. This is a more interesting finding than if it had worked as expected.
 
-| Strategy | Accuracy | Extraction Success Rate  | Accuracy on Extraction Success |
+| Strategy | Accuracy | ESR  | AoES |
 |---|---:|---:|---:|
 | **OS-and-CoT** | 55.9% | 97.0% | 57.6% |
 | **OS** | 51.9% | 90.7% | 57.2% |
@@ -267,15 +267,15 @@ The results did not go as I expected. OS-and-CoT was neither the best of both wo
 
 > **Note:** The summary results above can also be found in the [Initial Analysis](#initial-analysis) and [here](../README.md#summary-comparison-between-prompting-strategies) in the README, where the other prompting strategies are also included.
 
-The extraction success rate was even better than I could have hoped for, at an extraordinary 97%, substantially better than ordinary OS. Indeed, this carries OS-and-CoT to being the strongest strategy overall, which is great. However, the accuracy on extraction success was almost identical to that of OS; the benefits of CoT were not carried over.
+The ESR was even better than I could have hoped for, at an extraordinary 97%, substantially better than ordinary OS. Indeed, this carries OS-and-CoT to being the strongest strategy overall, which is great. However, the AoES was almost identical to that of OS; the benefits of CoT were not carried over.
 
 This raises two questions:
 1. Why does the CoT prompt not exert obvious influence anywhere? All the stats are clearly much closer to those of OS than of CoT.
-2. Why is the extraction rate even better than OS's, instead of being the same or dragged down by CoT?
+2. Why is the ESR even better than OS's, instead of being the same or dragged down by CoT?
 
 #### 1. Why no apparent CoT influence?
 
-I assert that this is simply because concrete examples dominate abstract instruction. The two signals compete, and OS wins out.
+I assert that this is simply because concrete examples dominate abstract instruction. The two signals compete, and OS wins out. Even if the CoT instruction is considered, the model might reasonably assume that the OS example is one that fulfills the instruction to think step by step.
 
 Empirical results demonstrate this. Consider the responses to GSM8K question 0 for each prompting strategy below:
 
@@ -292,25 +292,25 @@ Empirical results demonstrate this. Consider the responses to GSM8K question 0 f
 > **Note:** The entire result (i.e. the first line from the result output `jsonl` file) for each prompting strategy can be found in the README [here](../README.md#sample-results).
 
 Observe how similar the responses of OS and OS-and-CoT are when compared to CoT's. Three notable points:
-1. Most obviously, OS and OS-and-CoT are much shorter than CoT, which is certainly indicative of less step by step thinking.
+1. Most obviously, OS and OS-and-CoT are much shorter than CoT, which is certainly indicative of less step-by-step thinking.
 2. More granularly, both OS and OS-and-CoT have GSM8K style math notation. OS has `<<16*3=48>>48` and OS-and-CoT has `<<3*5=15>>15`. This is not found in the CoT response.
 3. CoT's response is more structured, each step having both a title and a number.
 
 Clearly, in this example, the OS instruction has a much larger effect on how the model responds than the CoT instruction does, to the point that former overrides the latter. So it is unsurprising that at an aggregate level OS-and-CoT performs similarly to OS, lacking any similarlity to CoT results.
 
-In my opinion, this is a case where the model behaves similarly to a human. If told to think step by step and given an example of how to respond, one assumes that that example is a good example of how to respond step by step (and certainly, the GSM8K-style response *is* step by step, just not to the extent of the CoT responses). Furthermore, and perhaps more importantly, following an existing format is just much easier than pioneering one's own. If I were taught a new mathematics concept, the theory is all well and good, but it does not truly make sense without an example, and the example is what I would keep looking back at when trying to solve my own problems.
+In my opinion, this is a case where the model behaves similarly to a human. If told to think step by step and given an example of how to respond, one assumes that that example is a good example of how to respond step by step (and certainly, the GSM8K-style response *is* step-by-step, just not to the extent of the CoT responses). Furthermore, and perhaps more importantly, following an existing format is just much easier than pioneering one's own. If I were taught a new mathematics concept, the theory is all well and good, but it does not truly make sense without an example, and the example is what I would keep looking back at when trying to solve my own problems.
 
 This result also goes to show that stock GSM8K answers are not "full" chain of thought. Certainly, there is some level of that, but it is not at the level of detail that model presumes should be done for CoT without an example (and interestingly, most of the BL responses that do have reasoning as opposed to being just the answer are closer to the CoT style, as well).
 
 In short, the OS instruction not only fixes the output format, but also provides a structure for how to respond that is not like how the model responds when asked to do CoT without an example. And if you do not have to think of a format, why bother? Use the format you are given.
 
-#### 2. Why is the extraction rate so good?
+#### 2. Why is the ESR so good?
 
-The only possibility that occurs to me is that the step by step thinking instruction makes adding the "#### " before the answer feel like a natural final *step*, leading the model to view it as more important.
+The only possibility that occurs to me is that the step-by-step thinking instruction makes adding the "#### " before the answer feel like a natural final *step*, leading the model to view it as more important.
 
 Initially, I found this explanation to be unsatisfactory. It assumes that the model remembers to handle things step by step at all, and yet considering that we do not see the more expected results from CoT characteristic of thinking step by step, it seems presumptious to conclude it would work in this new way.
 
-However, the conclusions of question one actually reinforce this theory. They explain why we lose all the other aspects of CoT—the abstract CoT instruction is drowned out by the concrete OS example. If anything, the CoT instruction perhaps reinforces the OS behavior, insofar as it is step by step. But part of that reinforced behavior is the extraction rate, so while most of the expected effects of CoT drown out, this improved extraction rate surfaces.
+However, the conclusions of question one actually reinforce this theory. They explain why we lose all the other aspects of CoT—the abstract CoT instruction is drowned out by the concrete OS example. If anything, the CoT instruction perhaps reinforces the OS behavior, insofar as it is step-by-step. But part of that reinforced behavior is the ESR, so while most of the expected effects of CoT drown out, this improved ESR surfaces.
 
 ### One Shot of Chain of Thought
 
@@ -320,7 +320,7 @@ A compelling means to accomplish this suddenly struck me. I temporarily modified
 
 #### OS-of-CoT Results
 
-| Strategy | Accuracy | Extraction Success Rate  | Accuracy on Extraction Success |
+| Strategy | Accuracy | ESR  | AoES |
 |:---|---:|---:|---:|
 | **OS-and-CoT** | 55.9% | 97.0% | 57.6% |
 | **OS** | 51.9% | 90.7% | 57.2% |
@@ -329,26 +329,67 @@ A compelling means to accomplish this suddenly struck me. I temporarily modified
 
 This did not go well. OS-of-CoT is the worst of the four. However, poor performing results are not inherently a bad thing. From a research / scientific perspective, this is interesting and this is progress.
 
-Insofar as making it more like CoT than OS-and-CoT is, this was definitely a success. The accuracy on extraction success is clearly very similar to that of CoT as opposed to those of other prompting strategies. Unfortunately, the extraction success rate is also closer to CoT's than that of any other prompting strategy, but only in that CoT is now the second worst and OS-of-CoT is the worst—the difference is actually rather large. This weak extraction rate reduces the overall accuracy equally precipitously.
+Insofar as making it more like CoT than OS-and-CoT is, this was definitely a success. The AoES is clearly very similar to that of CoT as opposed to those of other prompting strategies. Unfortunately, the ESR is also closer to CoT's than that of any other prompting strategy, but only in that CoT is now the second worst and OS-of-CoT is the worst—the difference is actually rather large. This weak ESR reduces the overall accuracy equally precipitously.
 
 Like with the [results of OS-and-CoT](#os-and-cot-results), the OS-of-CoT results present us with two questions.
-1. Why is the extraction success rate so poor?
-2. Although it is a small difference (2.8%), why is the accuracy on extraction success worse than CoT's?
+1. Why is the ESR so much worse than even CoT's?
+2. Although it is a small difference (2.8%), why is the AoES worse than CoT's?
 
-#### 1. Why is the extraction rate so bad?
+#### 1. Why is the ESR so bad?
 
-Here we are presented with the opposite question of OS-and-CoT. I was quite surprised that there was such a bad extraction rate. Given that OS and OS-and-CoT both have great ones, and that the main thing they have in common is OS, I assumed that OS where just the answer is different would also do well on extraction.
+Here we are presented with the opposite question of OS-and-CoT. I was quite surprised that there was such a bad ESR. Given that OS and OS-and-CoT both have great ones, and that the main thing they have in common is OS, I assumed that OS where just the answer is different would also do well on extraction.
 
 But I hypothesize that this is simply due to the longer answer example. With a larger answer, the "#### " before the final answer is proportionally smaller and is therefore a weaker format signal.
 
-#### 2. Why does OS-of-CoT have a slightly worse accuracy on extraction success than CoT does?
+#### 2. Why does OS-of-CoT have a slightly worse AoES than CoT does?
 
-The most important point here is that this difference in results is small enough that it probably does not actually represent a difference in performance.
+First, minor changes in prompt *phrasing*—let alone in prompt strategy—can produce differences in performance. See more on this in the [Prompt Phrasing](#prompt-phrasing) subsection of the Limitations and Future Direction section. So the difference here is within expected noise. Further, this is not a like-for-like comparison anyway, because the set of successfully extracted problems is different for different prompting strategies. Perhaps, for example, OS-of-CoT is slightly better at producing an extractable answer for problems that are harder (which would be a strength of the stategy masquerading as a weakness). This could be eliminated by recomputing accuracy on the subset of questions where extraction for both strategies was successful. It is also possible that the OS example induces rigidity in the model's behavior, locking it into imitating the example's approach, and some small subset of problems benefit from CoT's greater flexibility, but this would be hard to test. Overall, what is truly noteworthy here is that their performance is so *close*, not that there is a difference.
 
-Initially, I had assumed that this must be a statistically significant difference given that 1319 questions is a substantial sample size, but I had failed to consider an important variable. Accuracy on extraction success is graded, obviously, only on the problems where the answer is successfully extracted. But what that means is that comparing accuracy on extraction success between prompting strategies is not a completely like-for-like comparison, because the set of successfully extracted problems is different for different prompting strategies.
+## Tradeoffs
 
-So OS-of-CoT's accuracy on extraction success is graded on the 510 problems for which its answer was successfully extracted, and CoT's is graded on its 685 such problems. One might think that these sets are probably still representative, but we do not know that with certainty. It is possible, for example, that CoT is slightly better at producing an extractable answer for problems that are easier or that OS-of-CoT is slightly better at producing an extractable answer for problems that are harder. These differences would both explain the discrepancy here. And it is worth noting that the latter explanation would actually be the result of OS-of-CoT being better at something, yet appearing worse as a result.
+Take another look at the summary comparison table.
 
-In short, the gap here may be partly or wholly an artifact of comparing different question subsets. However, that is not necessarily the case, either. It could be a real small gap in performance.
+| Strategy | Accuracy | ESR  | AoES |
+|:---|---:|---:|---:|
+| **OS-and-CoT** | 55.9% | 97.0% | 57.6% |
+| **OS** | 51.9% | 90.7% | 57.2% |
+| **CoT** | 37.0% | 51.9% | 71.2% |
+| **OS-of-CoT** | 26.5% | 38.7% | 68.4% |
+| **AO** | 8.9% | 97.4% | 9.2% |
+| **BL** | 7.6% | 92.7% | 8.2% |
 
-I hypothesize the following as one possible explanation if it is a real difference. The OS example induces rigidity in the model's behavior, locking it into imitating the example's approach. This rigidity is not induced by the abstract CoT instruction. Some small subset of problems need an approach that the OS-of-CoT example does not demonstrate, and therefore benefit from the greater freedom allowed by CoT. So OS-of-CoT loses a few points on these problems. However, it would require much more data analysis to substantiate this hypothesis, but that is out of the current scope, so it remains untested and purely theoretical. See the [Future Direction](#future-direction) section below for more such matters.
+The key takeaway is that there is a tradeoff or tension between ESR and AoES. Of course, the tradeoff is not equivalent in all cases; otherwise, the overall accuracy would be consistent between strategies. But every strategy has a strong and weak trait between these two, and it is hard to increase one without decreasing the other, or at best keeping it the same.
+
+As for why this tradeoff exists, all of the analysis in previous sections points to the lever being to what extent the model thinks step by step in its response. More step-by-step thinking of course means better AoES—the fundamental principle of CoT—but it comes at a cost. Perhaps this is due to a decreased capacity for the model to hold on to the instruction for how to format for extraction, or perhaps longer outputs just have more opportunities to drift from format.
+
+This effect is most obvious in the cases of AO and BL. AO is explicitly instructed to exclude any thinking, and BL, lacking any instruction to do so, deigns not to. With this minimum possible degree of step-by-step thinking, both exhibit horrific AoES but excellent ESR.
+
+Conversely, CoT and OS-of-CoT are the strongest on AoES and suffer on ESR. And, indeed, their responses have the most verbose step-by-step thinking. Of course, CoT has a much stronger ESR than OS-of-CoT—see [this subsection](#1-why-is-the-extraction-rate-so-bad) of the OS-of-CoT results analysis for more on that.
+
+OS and OS-and-CoT strike the strongest balances, and thus top the leaderboard. This suggests diminishing returns of ESR and AoES as degree of step-by-step thinking decreases or increases, respectively. OS and OS-and-CoT boast ESRs very similar to those of AO and BL, despite middling degrees of step-by-step thinking, which is nonexistent for AO and BL. Yet OS and OS-and-CoT also retain most of the gains to AoES possible from step-by-step thinking. Moderate step-by-step thinking buys most of the AoES benefit while costing almost no ESR. 
+
+## Limitations and Future Direction
+
+### Introduction
+
+I have alluded to or explicitly mentioned many limitations and future directions throughout the rest of this analysis. I will reiterate and expand on those here, but will also discuss topics not explicitly related to any of the above sections, as well.
+
+I combine limitations and future direction into one section because there are many limitations that naturally inform a future direction that could resolve or mitigate them. Of course, there are both limitations and future directions not in that cross-category, as well, but for simplicity's sake I combine them all.
+
+The expanding landscape of analysis is practically infinite. I could list potential future direction in this project for twice as long as the entire rest of this document and still have plenty more to propose. So I will do my best to keep it limited to some of the most intriguing possibilities across a diverse range of contexts and methodologies.
+
+### Depth of Existing Analysis
+
+To start, I only scratched the surface on the volume of analysis that could be done, even on the data I already have, even adhering to analysis techniques I have already used, and even only in contexts in which I have already performed them. This is a time limitation. While manual analysis does get faster with experience, it is still a significant time investment, and only a certain volume is tenable.
+
+The clearest such example is as follows. Instead of performing the [Error Taxonomy](#error-taxonomy-and-distribution) informative to much of this analysis on 50 problems (and only 39 for CoT and BL), I could have done it on all 1319. Needless to say, this increased sample size would yield much greater confidence in related results. For example, as noted in [Distribution](#distribution), 'When considered, "How do forgetting errors tend to look?", it cannot be determined from this data, since we only have a sample size of 2 for them.' Even if I had still only examined errors for OS, of which there are 512, that is a 10x increase to sample size. Examining 20 forgetting errors would be much more informative. Analysis of a larger set of problems might produce other unknown results, as well, such as revealing additional error types. Given that some error types are as infrequent as 2 or 3 out of 50, it is certainly plausible that other types could be obfuscated by the restricted sample size.
+
+Another such case is the n=1 sample size for response-style comparison in the [Why no apparent CoT influence?](#1-why-no-apparent-cot-influence) subsection of the OS-and-CoT results analysis. Even if I had not expanded the overall analysis as suggested above, if I had examined all 39 problems for these questions, stronger conclusions would be able to be drawn regarding the patterns of response style by prompt strategy.
+
+### Tradeoff Resolution
+
+As discussed in [Tradeoffs](#tradeoffs), there is a fundamental tension between ESR and AoES. This cannot be trivially resolved with the current model. So it would be interesting to try a larger model to see how it performs. I would first try Qwen2.5-**3B**-Instruct to keep consistent all variables other than size when compared to my current Qwen2.5-**1.5B**-Instruct. Performance would undoubtedly increase across the board, and much further analysis could be done looking at how it comparatively improved across error types and such, but in this context, it would be interesting to see if it resolved this tradeoff. If not, perhaps there is some model size threshold at which it is overcome, at least in the context of GSM8K, and other sizes of Qwen2.5 instruction tuned models could be tested sequentially to find that.
+
+As I said, the tradeoff cannot be *trivially* resolved with the current model, but perhaps there are other non-trivial ways to resolve this aside from a new model. The two main ideas that occur to me are:
+1. Few-shot and few-shot variations. It seems very likely that this would improve ESR beyond that of OS, OS-and-CoT, and OS-of-CoT. Perhaps it would also improve AoES by providing a further range of example answers and thus box the model in to a lesser degree. I would predict that the degree to which this improvement would occur would scale with the number of few-shot examples (i.e. three-shot's performance > two-shot's, etc.).
+2. More advanced post-processing of responses to improve ESR. However, I find this less compelling since it is moreso advanced string parsing than advanced interaction with the LLM. Then again, one option could be to try using a large frontier model to parse the responses of the smaller model for the answer. But that would also beg the question of why not just use the larger model if you have the bandwidth to use it for answer extraction.
