@@ -231,6 +231,8 @@ unknown: 1
     - logical reasoning
     - 25+20 instead of 25-20
 
+TODO: delete this file
+
 
 | | One Shot | Baseline | Chain of Thought |
 |---|---|---|---|
