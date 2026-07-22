@@ -20,7 +20,19 @@ Prompt strategy options include:
 
 See the [Results](#results) section below for examples of exact phrasing of prompt strategies.
 
-## Running the Evaluation
+## Key Findings
+
+1. Concrete examples and abstract instruction in prompts compete for signal, and concrete examples win.
+2. There is a tension between the success rate of answer extraction from a response and accuracy on extraction success, where the lever is the extent to which the model thinks step-by-step.
+3. Error types persist across prompting strategies.
+4. CoT disproportionately corrects OS math errors compared to other error types.
+5. OS-and-CoT is the strongest strategy.
+
+See the [analysis document](analysis/analysis.md) for much more detail.
+
+See the overall results comparison below in [Summary Comparison Between Prompting Strategies](#summary-comparison-between-prompting-strategies).
+
+## Installation
 ### Requirements
 - Python
     - Tested on Python 3.11.
@@ -38,11 +50,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Run
+## Running Evaluations
 
 Note that the first run will download ~3GB, by default located at `C:\Users\<your-username>\.cache\huggingface`.
 
-#### Command Line Arguments
+### Command Line Arguments
 
 | Argument | Short | Description |
 |---:|---:|:---| 
@@ -52,7 +64,7 @@ Note that the first run will download ~3GB, by default located at `C:\Users\<you
 | `--batch-size` | `-bs` | Batch size for each inference loop (default: `32`). |
 | `--verbose` | `-v` | Prints the summary data rather than only saving it to the summary file.|
 
-#### Hugging Face Authentication (Optional)
+### Hugging Face Authentication (Optional)
 
 If you encounter rate limit warnings when downloading on the first run, and it is a problem for you, then:
 1. Create/login to Hugging Face: https://huggingface.co
@@ -290,13 +302,13 @@ Note that these results come from running the evaluations with no command line a
 
 ## Analysis
 
-See the analysis document in the analysis directory [here](analysis/analysis.md) for extensive analysis of the above results as well as a deep dive into different types of errors (manually categorized), cross-strategy comparisons therein, and the prompt iteration leading to the OS-and-CoT and OS-of-CoT prompt strategies.
+See the analysis document in the analysis directory [here](analysis/analysis.md) for extensive analysis of the above results as well as a deep dive into different types of errors (manually categorized), cross-strategy comparisons therein, the prompt iteration leading to the OS-and-CoT and OS-of-CoT prompt strategies, and limitations and future direction.
 
 ## Implementation Notes
 ### Batch Size
 Based on experiments using AO, results vary slightly (<0.5%) across batch sizes likely due to batch size affecting PyTorch kernel selection and therefore the possibility of different token selection in some cases.
 
-Execution time by batch size is a U-curve with a Goldilocks zone of efficiency: on my machine, experimentation suggests that the most accurate and most time-efficient batch size is in the range of 16-64, so I chose to stick with 32. Although accuracy was lower at both ends, extraction success rate remained relatively stable, suggesting that extraction success is not affected by batching, even though the model's ability to do the actual math is. An important caveat is that since the signal size of the accuracy variation is small (8.5%-8.9% range) range, it is not certain.
+Execution time by batch size is a U-curve with a Goldilocks zone of efficiency: on my machine, experimentation suggests that the most accurate and most time-efficient batch size is in the range of 16-64, so I chose to stick with 32. Although accuracy was lower at both ends, extraction success rate remained relatively stable, suggesting that extraction success is not affected by batching, even though the model's ability to do the actual math is. An important caveat is that since the signal size of the accuracy variation is small (8.5%-8.9% range), it is not certain.
 
 ### Greedy Decoding
 Used for reproducibility of results.
@@ -306,13 +318,12 @@ With the exception of the answer only prompting method, GSM8K evaluation follows
 https://github.com/openai/grade-school-math/blob/master/grade_school_math/dataset.py
 
 ### Prompt Format
-TODO: something here, maybe more, maybe less, talking about Analysis section?..
 For each prompt strategy, I experimented informally with various formats until I was satisfied. These are author-designed prompt variants, not benchmark-optimized prompts.
 
-All prompts, with the exception of AO (which requests the numerical answer in isolation), request that the numerical response be prefixed with "#### ", and they all give an example of that format, which improves extraction success rate. Further analysis could be done without that example or with other ways of giving an example.
+All prompts, with the exception of AO (which requests the numerical answer in isolation), request that the numerical response be prefixed with "#### ", and they all give an example of that format, which improves extraction success rate.
 
 See the [Sample Results](#sample-results) section above for examples of exact phrasing of prompt strategies.
 
 ## Future Direction
 
-See the section of the same title in the analysis document found in the analysis directory [here](analysis/analysis.md#future-direction).
+See the Limitations and Future Direction section in the analysis document found in the analysis directory [here](analysis/analysis.md#limitations-and-future-direction).

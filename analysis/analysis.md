@@ -1,21 +1,103 @@
 # Analysis
 
-Note that whenever reference is made to a question number, it is by its index in the test split of GSM8K, which corresponds to the `index` value for each result record `json` in a one of the `jsonl` output files, including in the first 50 errors file mentioned below in the [Error Taxonomy and Distribution](#error-taxonomy-and-distribution) introduction.
+## Table of Contents
+- [Notation](#notation)
+    - [Question Numbers](#question-numbers)
+    - [Acronyms](#acronyms)
+- [Key Findings](#key-findings)
+- [Overall Results](#overall-results)
+    - [Summary Comparison](#summary-comparison)
+        - [Initial Analysis](#initial-analysis)
+- [Error Taxonomy and Distribution](#error-taxonomy-and-distribution)
+    - [Taxonomy](#taxonomy)
+        - [Extraction Failure](#extraction-failure)
+        - [Math Error](#math-error)
+        - [Misunderstood Question](#misunderstood-question)
+        - [Logical Reasoning Error](#logical-reasoning-error)
+        - [Hallucination](#hallucination)
+        - [Forgetting](#forgetting)
+        - [Unknown](#unknown)
+    - [Distribution](#distribution)
+- [Cross-Strategy Comparison](#cross-strategy-comparison)
+    - [Per-Question Breakdown](#per-question-breakdown)
+    - [Outcome Distribution Overall](#outcome-distribution-overall)
+    - [Outcome Distribution by Error Type](#outcome-distribution-by-error-type)
+        - [Chain of Thought](#chain-of-thought)
+        - [Baseline](#baseline)
+    - [Comparison Analysis](#comparison-analysis)
+        - [1. Error type persists across strategies](#1-error-type-persists-across-strategies)
+        - [2. CoT is great at math and (possibly) at not hallucinating](#2-cot-is-great-at-math-and-possibly-at-not-hallucinating)
+- [Refinement Attempts](#refinement-attempts)
+    - [One Shot and Chain of Thought](#one-shot-and-chain-of-thought)
+        - [OS-and-CoT Results](#os-and-cot-results)
+        - [1. Why no apparent CoT influence?](#1-why-no-apparent-cot-influence)
+        - [2. Why is the ESR so good?](#2-why-is-the-esr-so-good)
+    - [One Shot of Chain of Thought](#one-shot-of-chain-of-thought)
+        - [OS-of-CoT Results](#os-of-cot-results)
+        - [1. Why is the ESR so bad?](#1-why-is-the-esr-so-bad)
+        - [2. Why does OS-of-CoT have a slightly worse AoES than CoT does?](#2-why-does-os-of-cot-have-a-slightly-worse-aoes-than-cot-does)
+- [Tradeoffs](#tradeoffs)
+- [Limitations and Future Direction](#limitations-and-future-direction)
+    - [Depth of Existing Analysis](#depth-of-existing-analysis)
+    - [The Uncertainty of Taxonomy](#the-uncertainty-of-taxonomy)
+        - [The ambiguity of the true source of an error](#the-ambiguity-of-the-true-source-of-an-error)
+        - [The presence of multiple errors](#the-presence-of-multiple-errors)
+    - [Tradeoff Resolution](#tradeoff-resolution)
+    - [Prompt Adjustments](#prompt-adjustments)
+        - [Wholly New Ideas](#wholly-new-ideas)
+        - [Formally Testing Previous Informal Tests](#formally-testing-previous-informal-tests)
+    - [Conclusion](#conclusion)
+
+## Notation
+
+### Question Numbers
+
+Whenever reference is made to a question number, it is by its index in the test split of GSM8K, which corresponds to the `index` value for each result record `json` in one of the `jsonl` output files, including in the first 50 errors file mentioned below in the [Error Taxonomy and Distribution](#error-taxonomy-and-distribution) introduction.
+
+### Acronyms
+
+| Acronym | Definition |
+|:---|---:|
+| AO | Answer Only |
+| BL | Baseline |
+| CoT | Chain of Thought |
+| OS | One Shot |
+| OS-and-CoT | One Shot and Chain of Thought |
+| OS-of-CoT | One Shot of Chain of Thought |
+| AoES | Accuracy on Extraction Success |
+| ESR | Extraction Success Rate |
+
+## Key Findings
+
+1. **Concrete examples and abstract instruction in prompts compete for signal, and concrete examples win.** Combining OS and CoT to make OS-and-CoT caused the model to imitate the more concise style of the OS example without retaining CoT's AoES advantage (71.2% to 57.6%) and to even improve ESR beyond OS's (90.7% to 97.0%).  
+    See: [Why no apparent CoT influence?](#1-why-no-apparent-cot-influence)
+
+2. **There is a tension between ESR and AoES where the lever is the extent to which the model thinks step-by-step.** AO and BL at one extreme do not have any thinking in the response, and thus possess strong ESR (97.4%, 92.7%) coupled with abysmal AoES (9.2%, 8.2%). CoT and OS-of-CoT are on the opposite end with poor ESR and excellent AoES (51.9%, 38.7% ESR and 71.2%, 68.4% AoES).  
+    See: [Tradeoffs](#tradeoffs)
+
+3. **Error types persist across prompting strategies.** 8/10 CoT errors on questions where OS had a logical reasoning error were also logical reasoning errors for CoT, and the same persistence occurs in 5/9 misunderstanding the question errors and 2/2 forgetting errors. This suggests model-level rather than prompt-level limitations.  
+    See: [Error type persists across strategies](#1-error-type-persists-across-strategies)
+
+4. **CoT disproportionately corrects OS math errors compared to other error types.** It corrected 5/6 math errors vs. 5/15 for logical reasoning, 4/13 for misunderstanding, and 0/2 for forgetting. Hallucinations may be improved, with 2/3 corrected.  
+    See: [CoT is great at math and (possibly) at not hallucinating](#2-cot-is-great-at-math-and-possibly-at-not-hallucinating)
+
+5. **OS-and-CoT is the strongest strategy.** Its 55.9% accuracy is carried by an excellent ESR (97%) and supported by an acceptable AoES (57.6%).  
+    See: [Summary Comparison](#summary-comparison) and [One Shot and Chain of Thought](#one-shot-and-chain-of-thought)
 
 ## Overall Results
 
 ### Summary Comparison
 
-This summary table is replicated here from the [README](../README.md#summary-comparison-between-prompting-strategies) for the reader's convenience. The sole addition is acronyms.
+This summary table is replicated here from the [README](../README.md#summary-comparison-between-prompting-strategies) for the reader's convenience.
 
-| Strategy | Accuracy | Extraction Success Rate (ESR)  | Accuracy on Extraction Success (AoES) |
+| Strategy | Accuracy | Extraction Success Rate  | Accuracy on Extraction Success |
 |:---|---:|---:|---:|
-| **One Shot and Chain of Thought (OS-and-CoT)** | 55.9% | 97.0% | 57.6% |
-| **One Shot (OS)** | 51.9% | 90.7% | 57.2% |
-| **Chain of Thought (CoT)** | 37.0% | 51.9% | 71.2% |
-| **One Shot of Chain of Thought (OS-of-CoT)** | 26.5% | 38.7% | 68.4% |
-| **Answer Only (AO)** | 8.9% | 97.4% | 9.2% |
-| **Baseline (BL)** | 7.6% | 92.7% | 8.2% |
+| **One Shot and Chain of Thought** | 55.9% | 97.0% | 57.6% |
+| **One Shot** | 51.9% | 90.7% | 57.2% |
+| **Chain of Thought** | 37.0% | 51.9% | 71.2% |
+| **One Shot of Chain of Thought** | 26.5% | 38.7% | 68.4% |
+| **Answer Only** | 8.9% | 97.4% | 9.2% |
+| **Baseline** | 7.6% | 92.7% | 8.2% |
 
 #### Initial Analysis
 
@@ -23,11 +105,11 @@ OS-and-CoT has the overall best accuracy due to its excellent ESR and good AoES,
 
 CoT has by far the best AoES, but remains middling in overall accuracy due to a poor ESR, at which it is only better than OS-of-CoT.
 
-Merely suggesting thinking step by step (CoT) causes a drastic drop in ESR compared to BL (51.9% vs 92.7%). This goes to show that it is easy to overload smaller models on instructions—add the "Explain your answer step by step," and the "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'" is often forgotten.
+Merely suggesting thinking step by step (CoT) causes a drastic drop in ESR compared to BL (51.9% vs. 92.7%). This goes to show that it is easy to overload smaller models on instructions—add the "Explain your answer step by step," and the "For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'" is often forgotten.
 
 I suspect that the above does not occur for OS because while BL and CoT have a formatting-specific one-shot embedded in the prompt ("For example: '#### 42'"), OS's example response includes appropriate formatting as well, which makes it two-shot with respect to formatting, strengthening the model's ESR.
 
-BL is the worst, even worse than AO, even when ignoring extraction as a factor. This is surprising since using its response to think through an answer typically makes a model perform better—that is the whole idea behind CoT as a methodology, and AO makes it answer without any of that thinking. However, as the [Cross-Strategy Comparison](#cross-strategy-comparison) section below reveals, BL rarely contained a response beyond the answer, either. But that only explains why BL does not do meaningful better than AO, not why it does meaningfully worse, so it remains surprising.
+BL is the worst, even worse than AO, even when ignoring extraction as a factor. This is surprising since using its response to think through an answer typically makes a model perform better—that is the whole idea behind CoT as a methodology, and AO makes it answer without any of that thinking. However, as the [Cross-Strategy Comparison](#cross-strategy-comparison) section below reveals, BL rarely contained a response beyond the answer, either. But that only explains why BL does not do meaningfully better than AO, not why it does meaningfully worse, so it remains surprising.
 
 ## Error Taxonomy and Distribution
 
@@ -35,7 +117,7 @@ Before having added OS-of-CoT and OS-and-CoT, of which I had not yet conceived, 
 
 Since OS was the best performer among the original four in terms of overall accuracy, I chose to analyze its results to start.
 
-I collected the first 50 errors from the OS results, using a script I wrote to assist (see [find_errors.py](scripts/find_errors.py) in the scripts directory), which parses a results file for a given number of regular errors / extraction failures and writes them to a new `jsonl` file. **A copy of the first 50 errors file can be found [here](2026-05-08_13-34-48_qc100_one-shot_first_50_errors.jsonl) in the analysis directory.** This may be of use for reference when specific problems are referred to throughout this document. Consider using a jsonl reader website like https://jsonl.co/ to make the file more readable.
+I collected the first 50 errors from the OS results, using a script I wrote to assist (see [find_errors.py](scripts/find_errors.py) in the scripts directory), which parses a results file for a given number of regular errors / extraction failures and writes them to a new `jsonl` file. **A copy of the first 50 errors file can be found [here](2026-05-08_13-34-48_qc100_one-shot_first_50_errors.jsonl) in the analysis directory.** This may be of use for reference when specific problems are referred to throughout this document. Consider using a jsonl reader website like https://jsonl.co/ to make the file more readable. Note that although the errors were drawn from a 100 question run rather than the full 1319, the responses are identical to the full run's first 100 because I used the same configuration, and greedy decoding ensures consistent responses for the same configuration.
 
 I then manually categorized the 50 errors into the following categories. I initially had in mind the first four. The final three were additions I made during the process.
 
@@ -44,9 +126,9 @@ I then manually categorized the 50 errors into the following categories. I initi
 2. Math Error
 3. Misunderstood Question
 4. Logical Reasoning Error
-4. Hallucination
-5. Forgetting
-6. Unknown
+5. Hallucination
+6. Forgetting
+7. Unknown
 
 #### Extraction Failure
 
@@ -79,7 +161,7 @@ Here, a model acknowledges information early, and then forgets to account for it
 
 #### Unknown
 
-In some cases, it is not clear which category an error fits into. The only source of information is the model's response, and sometimes that is insufficient to categorize with confidence. For OS, there was only one case of this in the 50 problems I examined, question 77. In this case, the model does not give enough information for it to be clear whether it misread a fact or it misapplied logic to correctly-read facts; in other words, it is not clear whether it is an issue of miusunderstanding the question or logical reasoning. To make the point clearer, AO responses, assuming the model actually does give only the answer, are always categorized as unknown errors when they are wrong—there is not enough reasoning visible to make a reliable conclusion as to what type of error it is. While other prompting strategies do usually having reasoning, that does not mean there is enough information in their responses, either. See more on this in the [The ambiguity of the true source of an error](TODO) subsection of the  section below.
+In some cases, it is not clear which category an error fits into. The only source of information is the model's response, and sometimes that is insufficient to categorize with confidence. For OS, there was only one case of this in the 50 problems I examined, question 77. In this case, the model does not give enough information for it to be clear whether it misread a fact or it misapplied logic to correctly-read facts; in other words, it is not clear whether it is an issue of misunderstanding the question or logical reasoning. To make the point clearer, AO responses, assuming the model actually does give only the answer, are always categorized as unknown errors when they are wrong—there is not enough reasoning visible to make a reliable conclusion as to what type of error it is. While other prompting strategies do usually have reasoning, that does not mean there is enough information in their responses, either. See more on this in the [The ambiguity of the true source of an error](#the-ambiguity-of-the-true-source-of-an-error) subsection of [Limitations and Future Direction](#limitations-and-future-direction) below.
 
 ### Distribution
 
@@ -96,7 +178,7 @@ In some cases, it is not clear which category an error fits into. The only sourc
 
 Logical reasoning errors are the most preponderant, indicating that reducing their frequency would be most effective in improving performance of OS. However, it is vague what connects one logical reasoning error to another causationally. This category contains a set of errors for which the base issue could be caused in a wide number of ways. So I am skeptical that any type of prompt adjustment would help them universally.
 
-Misunderstanding the question is not far behind reasoning in count—close enough that it is certainly possible that in the full dataset, it is actually a more frequent type than logical reasoning errors. And I can readily imagine various ways to possibly improvement here. For example, the model could be told to restate the problem or even just to ensure that it understands the question, or similar such additions. These would likely make the model pay more attention to the question which I suspect would improve performance.
+Misunderstanding the question is not far behind reasoning in count—close enough that it is certainly possible that in the full dataset, it is actually a more frequent type than logical reasoning errors. And I can readily imagine various ways to possible improvement here. For example, the model could be told to restate the problem or even just to ensure that it understands the question, or similar such additions. These would likely make the model pay more attention to the question which I suspect would improve performance.
 
 There is a drop-off before the frequency of math problems, but there are still enough of these that improving them would be useful. In contrast, hallucination and forgetting are both uncommon enough that trying to improve them is not worthwhile for now.
 
@@ -104,7 +186,7 @@ Improving ESR would certainly be helpful. After all, that is why OS has a better
 
 Less obviously, the point above regarding fixing extraction not necessarily leading to a correct answer is also true for error types other than extraction failures—that is to say, sometimes, there are multiple other error types in one response (though with a lesser frequency than when one is an extraction failure). For example, question 60 includes both misunderstanding the question and then later a math error. Resolving just one half of that would still produce a wrong answer.
 
-**A note on the sample size:** Compared to the overall 1319 set of test questions in GSM8K, 50 is a small sample size. However, one indication of good representativeness is that the extraction failure rate is very close to that of the rate in the full set. 10/50 or 20% of the failures in this sample are extraction failures compared to 123/635 in the full set or 19.4%. Of course, this does not necessarily mean that the proportions of the other error types are equally accurate, but it is nonetheless a good sign for the accuracy of the distribution in this sample relative to the full set. Crucially, though, this definitely does not mean that the sample size for each error type is necessarily large enough to make meaningful conclusions on it. When considered, for example, "How do forgetting errors tend to look?", it cannot be reliably determined from this data, since we only have a sample size of 2 for them. See more on this the [Limitations](#TODO) section.
+**A note on the sample size:** Compared to the overall 1319 set of test questions in GSM8K, 50 is a small sample size. However, one indication of good representativeness is that the extraction failure rate is very close to that of the rate in the full set. 10/50 or 20% of the failures in this sample are extraction failures compared to 123/635 in the full set or 19.4%. Of course, this does not necessarily mean that the proportions of the other error types are equally accurate, but it is nonetheless a good sign for the accuracy of the distribution in this sample relative to the full set. Crucially, though, this definitely does not mean that the sample size for each error type is necessarily large enough to make meaningful conclusions on it. When considered, for example, "How do forgetting errors tend to look?", it cannot be reliably determined from this data, since we only have a sample size of 2 for them. See more on this in the [Depth of Existing Analysis](#depth-of-existing-analysis) subsection of the [Limitations and Future Direction](#limitations-and-future-direction) section.
 
 ## Cross-Strategy Comparison
 
@@ -168,7 +250,7 @@ The following table is sorted by OS error type and then by question number.
 | 50 | forgetting | forgetting (EF) | unknown |
 | 54 | forgetting | forgetting (EF) | unknown |
 
-> **\*** Q94 and Q45, Baseline: reasoned to the correct answer but emitted a wrong answer first; the automated scoring thus counts these as wrong answers. Similarly to an extracion failure, however, their reasoning can still be evaluated independently of this mishap. These dual-answer self-contradiction cases occurred other times in BL responses; however, these were the only instances wherein the non-emitted answer was correct.
+> **\*** Q94 and Q45, Baseline: reasoned to the correct answer but emitted a wrong answer first; the automated scoring thus counts these as wrong answers. Similarly to an extraction failure, however, their reasoning can still be evaluated independently of this mishap. These dual-answer self-contradiction cases occurred other times in BL responses; however, these were the only instances wherein the non-emitted answer was correct.
 
 ### Outcome Distribution Overall
 
@@ -187,7 +269,7 @@ The following table is sorted by OS error type and then by question number.
 
 ### Outcome Distribution by Error Type
 
-Results for CoT and BL, split by the OS error type to which they belong. Counts continue to ignore extraction failures. `n` is the number of OS failures of that type. Outcome columns mirror the row order, so same-type persistence sits on the diagonal (offset one column by `✓`). This excludes Unknown, since unknown OS results were not included in the cross-strategy comparison.
+The following tables are results for CoT and BL, split by the OS error type to which they belong. Counts continue to ignore extraction failures. `n` is the number of OS failures of that type. Outcome columns mirror the row order, so same-type persistence sits on the diagonal (offset one column by `✓`). This mirroring excludes Unknown, since unknown OS results were not included in the cross-strategy comparison.
 
 #### Chain of Thought
 
@@ -220,7 +302,7 @@ There are two important takeaways from this comparison.
 
 #### 1. Error type persists across strategies
 
-In other words, the error type is more about the problem than the prompting strategy: certain questions trip the model up in similar ways regardless of prompt. This suggests model-level rather prompt-level limitations.
+In other words, the error type is more about the problem than the prompting strategy: certain questions trip the model up in similar ways regardless of prompt. This suggests model-level rather than prompt-level limitations.
 
 If one examines the diagonal on the [outcome distribution by error type for CoT](#chain-of-thought), it is clear that for each category, overall, CoT tends to err in the same way as OS:
 - 8/10 CoT errors on questions where OS had a logical reasoning error are also logical reasoning errors for CoT
@@ -243,7 +325,7 @@ Hallucinations in this sample also improve substantially, with 2/3 of the OS hal
 
 Given the results of the [Comparison Analysis](#comparison-analysis) above, I thought that integrating CoT into OS could produce a drastic improvement in overall accuracy by strengthening math and (perhaps) hallucination performance while still retaining OS's excellent ESR.
 
-While even those two categories added together are fewer in number than either logical reasoning errors or misunderstanding the question alone (9 vs 15 and 13), the path forward here based on the data is much more informed than the path forward for improving either of the latter two categories. In other words, it is the low hanging fruit.
+While even those two categories added together are fewer in number than either logical reasoning errors or misunderstanding the question alone (9 vs. 15 and 13), the path forward here based on the data is much more informed than the path forward for improving either of the latter two categories. In other words, it is the low hanging fruit.
 
 Furthermore, regardless of impact on these two particular categories, I already knew that CoT has a better overall AoES than OS does from initial summary data (see: [Summary Comparison](#summary-comparison)), so that is another reason to think that combining the two would be fruitful.
 
@@ -296,11 +378,11 @@ Observe how similar the responses of OS and OS-and-CoT are when compared to CoT'
 2. More granularly, both OS and OS-and-CoT have GSM8K style math notation. OS has `<<16*3=48>>48` and OS-and-CoT has `<<3*5=15>>15`. This is not found in the CoT response.
 3. CoT's response is more structured, each step having both a title and a number.
 
-Clearly, in this example, the OS instruction has a much larger effect on how the model responds than the CoT instruction does, to the point that former overrides the latter. So it is unsurprising that at an aggregate level OS-and-CoT performs similarly to OS, lacking any similarlity to CoT results.
+Clearly, in this example, the OS instruction has a much larger effect on how the model responds than the CoT instruction does, to the point that the former overrides the latter. So it is unsurprising that at an aggregate level OS-and-CoT performs similarly to OS, lacking any similarity to CoT results.
 
 In my opinion, this is a case where the model behaves similarly to a human. If told to think step by step and given an example of how to respond, one assumes that that example is a good example of how to respond step by step (and certainly, the GSM8K-style response *is* step-by-step, just not to the extent of the CoT responses). Furthermore, and perhaps more importantly, following an existing format is just much easier than pioneering one's own. If I were taught a new mathematics concept, the theory is all well and good, but it does not truly make sense without an example, and the example is what I would keep looking back at when trying to solve my own problems.
 
-This result also goes to show that stock GSM8K answers are not "full" chain of thought. Certainly, there is some level of that, but it is not at the level of detail that model presumes should be done for CoT without an example (and interestingly, most of the BL responses that do have reasoning as opposed to being just the answer are closer to the CoT style, as well).
+This result also goes to show that stock GSM8K answers are not "full" chain of thought. Certainly, there is some level of that, but it is not at the level of detail that the model presumes should be done for CoT without an example (and interestingly, most of the BL responses that do have reasoning as opposed to being just the answer are closer to the CoT style, as well).
 
 In short, the OS instruction not only fixes the output format, but also provides a structure for how to respond that is not like how the model responds when asked to do CoT without an example. And if you do not have to think of a format, why bother? Use the format you are given.
 
@@ -308,7 +390,7 @@ In short, the OS instruction not only fixes the output format, but also provides
 
 The only possibility that occurs to me is that the step-by-step thinking instruction makes adding the "#### " before the answer feel like a natural final *step*, leading the model to view it as more important.
 
-Initially, I found this explanation to be unsatisfactory. It assumes that the model remembers to handle things step by step at all, and yet considering that we do not see the more expected results from CoT characteristic of thinking step by step, it seems presumptious to conclude it would work in this new way.
+Initially, I found this explanation to be unsatisfactory. It assumes that the model remembers to handle things step by step at all, and yet considering that we do not see the more expected results from CoT characteristic of thinking step by step, it seems presumptuous to conclude it would work in this new way.
 
 However, the conclusions of question one actually reinforce this theory. They explain why we lose all the other aspects of CoT—the abstract CoT instruction is drowned out by the concrete OS example. If anything, the CoT instruction perhaps reinforces the OS behavior, insofar as it is step-by-step. But part of that reinforced behavior is the ESR, so while most of the expected effects of CoT drown out, this improved ESR surfaces.
 
@@ -343,7 +425,7 @@ But I hypothesize that this is simply due to the longer answer example. With a l
 
 #### 2. Why does OS-of-CoT have a slightly worse AoES than CoT does?
 
-First, minor changes in prompt *phrasing*—let alone in prompt strategy—can produce differences in performance. See more on this in the [Prompt Phrasing](#prompt-phrasing) subsection of the Limitations and Future Direction section. So the difference here is within expected noise. Further, this is not a like-for-like comparison anyway, because the set of successfully extracted problems is different for different prompting strategies. Perhaps, for example, OS-of-CoT is slightly better at producing an extractable answer for problems that are harder (which would be a strength of the stategy masquerading as a weakness). This could be eliminated by recomputing accuracy on the subset of questions where extraction for both strategies was successful. It is also possible that the OS example induces rigidity in the model's behavior, locking it into imitating the example's approach, and some small subset of problems benefit from CoT's greater flexibility, but this would be hard to test. Overall, what is truly noteworthy here is that their performance is so *close*, not that there is a difference.
+First, minor changes in prompt *phrasing*—let alone in prompt strategy—can produce differences in performance. See more on this in the [Formally Testing Previous Informal Tests](#formally-testing-previous-informal-tests) subsection of the [Limitations and Future Direction](#limitations-and-future-direction) section. So the difference here is within expected noise. Further, this is not a like-for-like comparison anyway, because the set of successfully extracted problems is different for different prompting strategies. Perhaps, for example, OS-of-CoT is slightly better at producing an extractable answer for problems that are harder (which would be a strength of the strategy masquerading as a weakness). This could be eliminated by recomputing accuracy on the subset of questions where extraction for both strategies was successful. It is also possible that the OS example induces rigidity in the model's behavior, locking it into imitating the example's approach, and some small subset of problems benefit from CoT's greater flexibility, but this would be hard to test. Overall, what is truly noteworthy here is that their performance is so *close*, not that there is a difference.
 
 ## Tradeoffs
 
@@ -364,13 +446,11 @@ As for why this tradeoff exists, all of the analysis in previous sections points
 
 This effect is most obvious in the cases of AO and BL. AO is explicitly instructed to exclude any thinking, and BL, lacking any instruction to do so, deigns not to. With this minimum possible degree of step-by-step thinking, both exhibit horrific AoES but excellent ESR.
 
-Conversely, CoT and OS-of-CoT are the strongest on AoES and suffer on ESR. And, indeed, their responses have the most verbose step-by-step thinking. Of course, CoT has a much stronger ESR than OS-of-CoT—see [this subsection](#1-why-is-the-extraction-rate-so-bad) of the OS-of-CoT results analysis for more on that.
+Conversely, CoT and OS-of-CoT are the strongest on AoES and suffer on ESR. And, indeed, their responses have the most verbose step-by-step thinking. Of course, CoT has a much stronger ESR than OS-of-CoT—see [this subsection](#1-why-is-the-esr-so-bad) of the OS-of-CoT results analysis for more on that.
 
 OS and OS-and-CoT strike the strongest balances, and thus top the leaderboard. This suggests diminishing returns of ESR and AoES as degree of step-by-step thinking decreases or increases, respectively. OS and OS-and-CoT boast ESRs very similar to those of AO and BL, despite middling degrees of step-by-step thinking, which is nonexistent for AO and BL. Yet OS and OS-and-CoT also retain most of the gains to AoES possible from step-by-step thinking. Moderate step-by-step thinking buys most of the AoES benefit while costing almost no ESR. 
 
 ## Limitations and Future Direction
-
-### Introduction
 
 I have alluded to or explicitly mentioned many limitations and future directions throughout the rest of this analysis. I will reiterate and expand on those here, but will also discuss topics not explicitly related to any of the above sections, as well.
 
@@ -382,18 +462,9 @@ The expanding landscape of analysis is practically infinite. I could list potent
 
 To start, I only scratched the surface on the volume of analysis that could be done, even on the data I already have, even adhering to analysis techniques I have already used, and even only in contexts in which I have already performed them. This is a time limitation. While manual analysis does get faster with experience, it is still a significant time investment, and only a certain volume is tenable.
 
-The clearest such example is as follows. Instead of performing the [Error Taxonomy](#error-taxonomy-and-distribution) informative to much of this analysis on 50 problems (and only 39 for CoT and BL), I could have done it on all 1319. Needless to say, this increased sample size would yield much greater confidence in related results. For example, as noted in [Distribution](#distribution), 'When considered, "How do forgetting errors tend to look?", it cannot be determined from this data, since we only have a sample size of 2 for them.' Even if I had still only examined errors for OS, of which there are 512, that is a 10x increase to sample size. Examining 20 forgetting errors would be much more informative. Analysis of a larger set of problems might produce other unknown results, as well, such as revealing additional error types. Given that some error types are as infrequent as 2 or 3 out of 50, it is certainly plausible that other types could be obfuscated by the restricted sample size.
+The clearest such example is as follows. Instead of performing the [Error Taxonomy](#error-taxonomy-and-distribution) informative to much of this analysis on 50 problems (and only 39 for CoT and BL), I could have done it on all 1319. Needless to say, this increased sample size would yield much greater confidence in related results. For example, as noted in [Distribution](#distribution), 'When considered, "How do forgetting errors tend to look?", it cannot be reliably determined from this data, since we only have a sample size of 2 for them.' Even if I had still only examined errors for OS, of which there are 512, that is a 10x increase to sample size. Examining 20 forgetting errors would be much more informative. Analysis of a larger set of problems might produce other unknown results, as well, such as revealing additional error types. Given that some error types are as infrequent as 2 or 3 out of 50, it is certainly plausible that other types could be obfuscated by the restricted sample size.
 
 Another such case is the n=1 sample size for response-style comparison in the [Why no apparent CoT influence?](#1-why-no-apparent-cot-influence) subsection of the OS-and-CoT results analysis. Even if I had not expanded the overall analysis as suggested above, if I had examined all 39 problems for these questions, stronger conclusions would be able to be drawn regarding the patterns of response style by prompt strategy.
-
-### Tradeoff Resolution
-
-As discussed in [Tradeoffs](#tradeoffs), there is a fundamental tension between ESR and AoES. This cannot be trivially resolved with the current model. So it would be interesting to try a larger model to see how it performs. I would first try Qwen2.5-**3B**-Instruct to keep consistent all variables other than size when compared to my current Qwen2.5-**1.5B**-Instruct. Performance would undoubtedly increase across the board, and much further analysis could be done looking at how it comparatively improved across error types and such, but in this context, it would be interesting to see if it resolved this tradeoff. If not, perhaps there is some model size threshold at which it is overcome, at least in the context of GSM8K, and other sizes of Qwen2.5 instruction tuned models could be tested sequentially to find that.
-
-As I said, the tradeoff cannot be *trivially* resolved with the current model, but perhaps there are other non-trivial ways to resolve this aside from a new model. The two main ideas that occur to me are:
-1. Few-shot and few-shot variations. It seems very likely that this would improve ESR beyond that of OS, OS-and-CoT, and OS-of-CoT. Perhaps it would also improve AoES by providing a further range of example answers and thus box the model in to a lesser degree. I would predict that the degree to which this improvement would occur would scale with the number of few-shot examples (i.e. three-shot's performance > two-shot's, etc.).
-2. Swap the OS example for a harder, multi-step problem to test whether example difficulty anchors reasoning depth. This could lead to a worse ESR, if it is true that a longer answer example buries the extraction example, as hypothesized in the [Why is the ESR so bad?](#1-why-is-the-esr-so-bad) section of the OS-of-CoT analysis. But it also seems plausible that a more difficult example could improve AoES without weakening ESR.
-3. More advanced post-processing of responses to improve ESR. However, I find this less compelling since it is moreso advanced string parsing than advanced interaction with the LLM. Then again, one option could be to try using a large frontier model to parse the responses of the smaller model for the answer. But that would also beg the question of why not just use the larger model if you have the bandwidth to use it for answer extraction.
 
 ### The Uncertainty of Taxonomy
 
@@ -403,32 +474,41 @@ Taxonomy has fuzzy boundaries. It is often unclear what the true source of an er
 
 As mentioned in the [Unknown](#unknown) section, sometimes it is not clear which category an error fits into. That section does not mention, however, that much of the time, even errors I did categorize could actually be closer to another type. It is a matter of confidence level. All we have is the model's output; we cannot see its internal state and do not know if it went wrong somewhere that is invisible. Consequently, some level of assumption is required.
 
-Notably, confidence is higher for math errors, which are obvious when they occur in the response. But while there is more confidence that a math error is not something else, there is no less confidence that something else is not a math error: there remains no way of knowing if there was a math error that was not written down in the output, and that therefore e.g. a hallucinated number was the result of an invisible math error.
+Notably, math errors are the one category where a positive identification is high confidence, because a visible math error in the response is clearly not anything else. The reverse, however, does not hold. The absence of a visible math error does not rule one out, since an invisible miscalculation could still manifest as, for example, a seemingly hallucinated number.
 
-The line is often particularly blurry between logical reasoning and misunderstanding the question, such is an question 5 and 15, both of which I declared as the former. One could argue that on question 5, the model's failure was that it thought the discount on the second glass applied to all glasses after the first instead of every other, rather than the logical failure of not implementing the alternation correctly. On question 15, where the model essentially answers a different question, perhaps that's what it understood the question to be, rather than making a mistep during the logic of answering the first.
+The line is often particularly blurry between logical reasoning and misunderstanding the question, such as in questions 5 and 15, both of which I declared as the former. One could argue that on question 5, the model's failure was that it thought the discount on the second glass applied to all glasses after the first instead of every other, rather than the logical failure of not implementing the alternation correctly. On question 15, where the model essentially answers a different question, perhaps that is what it understood the question to be, rather than making a misstep during the logic of answering the first.
 
 The fuzziness is also especially pronounced between misunderstanding and forgetting. I decided that questions where the model fails to acknowledge an important detail in the prompt (as in question 94) is a case of misunderstanding. Although I decided that forgetting errors only occur when something was mentioned in the response and then later not included where it needed to be, it would be reasonable to label the situations like question 94 as forgetting as well. It would also be reasonable to even create a third designation for this midpoint category, keeping forgetting as described and misunderstanding as its other subcategory: replacements rather than dropping, like six years older becoming six years younger (question 21).
 
-Ultimately, there is fundamental subjective uncertainty in taxonomy, which is a weakness, albeit an unavoidable one. One can only use that which is observable. Much as a scientist studying a mouse's behavior has only that to go on, and not its internal experience, so too the model's output is all I have. The scientist could dissect the mouse's brain to go deeper, much as the model's behavior could be better understood with interpretabiltiy study of its thoughts outside the response, but even then, there remain practically endless layers of whys. Why did the model get this wrong? Well it misunderstood the question. Why did it misunderstand? Etc. Perhaps I should have been more conservative and labeled more responses as unknown, but I had to choose the cut it off at some point and make a call, and my cutting off point is what we can see and surmise based just on the output.
+Ultimately, there is fundamental subjective uncertainty in taxonomy, which is a weakness, albeit an unavoidable one. One can only use that which is observable. Much as a scientist studying a mouse's behavior has only that to go on, and not its internal experience, so too the model's output is all I have. The scientist could dissect the mouse's brain to go deeper, much as the model's behavior could be better understood with interpretability study of its thoughts outside the response, but even then, there remain practically endless layers of whys. Why did the model get this wrong? Well it misunderstood the question. Why did it misunderstand? Etc. Perhaps I should have been more conservative and labeled more responses as unknown, but I had to choose to cut it off at some point and make a call, and my cutting off point is what we can see and surmise based just on the output.
 
 #### The presence of multiple errors
 
 Additionally, a model's response sometimes contains multiple errors. For example, in question 31, in which characters are guessing the number of jelly beans in a container, one character says 80, and "another says 20 more than half the first one." The model instead calculates 80 more than half the first one ("80 + (1/2)*80"), having presumably misread the question. The third character predicts "25% more than the first one," which the model says is 90, having incorrectly calculated 25% of 80 as 10.
 
-In these cases, I usually labeled the failure by the earliest error that makes the answer unrecoverable, or, if it was unclear what type of error that was, then the clearer one. There's no particular reason to choose the first one, and the cleanest analysis would instead acknowledge both error types. But that gets complicated quickly. My labeling system seems to me to be the most reasonable choice given that the error taxonomy process is extremely time consuming, so the alternative would be to lower the sample size even further. But I would remiss not to mention the lack of a more robust classification system considering multiple errors per problem as a limitation and its potential for future direction.
+In these cases, I usually labeled the failure by the earliest error that makes the answer unrecoverable, or, if it was unclear what type of error that was, then the clearer one. There is no particular reason to choose the first one, and the cleanest analysis would instead acknowledge both error types. But that gets complicated quickly. My labeling system seems to me to be the most reasonable choice given that the error taxonomy process is extremely time consuming, so the alternative would be to lower the sample size even further. But I would be remiss not to mention the lack of a more robust classification system considering multiple errors per problem as a limitation and its potential for future direction.
+
+### Tradeoff Resolution
+
+As discussed in [Tradeoffs](#tradeoffs), there is a fundamental tension between ESR and AoES. This cannot be trivially resolved with the current model. So it would be interesting to try a larger model to see how it performs. I would first try Qwen2.5-**3B**-Instruct to keep consistent all variables other than size when compared to my current Qwen2.5-**1.5B**-Instruct. Performance would very likely increase across the board, and much further analysis could be done looking at how it comparatively improved across error types and such, but in this context, it would be interesting to see if it resolved this tradeoff. If not, perhaps there is some model size threshold at which it is overcome, at least in the context of GSM8K, and other sizes of Qwen2.5 instruction tuned models could be tested sequentially to find that.
+
+As I said, the tradeoff cannot be *trivially* resolved with the current model, but perhaps there are other non-trivial ways to resolve this aside from a new model. Three ideas that occur to me are:
+1. Few-shot and few-shot variations. It seems very likely that this would improve ESR beyond that of OS, OS-and-CoT, and OS-of-CoT. Perhaps it would also improve AoES by providing a further range of example answers and thus constrain the model to a lesser degree. I would predict that the degree to which this improvement would occur would scale with the number of few-shot examples (i.e. three-shot's performance > two-shot's, etc.).
+2. Swap the OS example for a harder, multi-step problem to test whether example difficulty anchors reasoning depth. This could lead to a worse ESR, if it is true that a longer answer example buries the extraction example, as hypothesized in the [Why is the ESR so bad?](#1-why-is-the-esr-so-bad) section of the OS-of-CoT analysis. But it also seems plausible that a more difficult example could improve AoES without weakening ESR.
+3. More advanced post-processing of responses to improve ESR. One option could be to try using a large frontier model to parse the responses of the smaller model for the answer. However, I find this less compelling and worthwhile since it is more so advanced string parsing than advanced interaction with the model.
 
 ### Prompt Adjustments
 
 #### Wholly New Ideas
 
-In the [Logical Reasoning Error](#logical-reasoning-error) section, I explained the error of question 41, which suggested a safe range from a dragon being -200 feet. Similarly, in the [Misunderstood Question](#misunderstood-question) section, I mentioned the problem where the model assumes that 16 oz cans of tomatoes refer to the volume after reduction rather than before. These sort of problems reveals a certain lack of critical thinking by the model. It does not consider that one of its conclusions simply makes no sense. Now, in fairness, it might think that the questions are not expected to have answers that must make sense. But it does not mention considering that in its responses. Perhaps results could be improved by asking the model to consider whether its ultimate conclusion seems logical in isolation, and, if not, to redo the problem with that in mind. The model might then reflect that -200 feet does not make any sense as a concept. I sometimes notice this kind of self-checking in Claude's thinking, so at least one more capable model exhibits this behavior. Whether that emerges through training, hidden base prompts, or simply larger scale is impossible to conclude from this observation alone, but it does demonstrate that it is an achievable ability.
+In the [Logical Reasoning Error](#logical-reasoning-error) section, I explained the error of question 41, which suggested a safe range from a dragon being -200 feet. Similarly, in the [Misunderstood Question](#misunderstood-question) section, I mentioned the problem where the model assumes that 16 oz cans of tomatoes refer to the volume after reduction rather than before. These sorts of problems reveal a certain lack of critical thinking by the model. It does not consider that one of its conclusions simply makes no sense. Now, in fairness, it might think that the questions are not expected to have answers that must make sense. But it does not mention considering that in its responses. Perhaps results could be improved by asking the model to consider whether its ultimate conclusion seems logical in isolation, and, if not, to redo the problem with that in mind. The model might then reflect that -200 feet does not make any sense as a concept. I sometimes notice this kind of self-checking in Claude's thinking, so at least one more capable model exhibits this behavior. Whether that emerges through training, system prompts, or simply larger scale is impossible to conclude from this observation alone, but it does demonstrate that it is an achievable ability.
 
 As mentioned in the [Distribution](#distribution) section, I could try reducing the frequency of misreading the question in various ways.
 > For example, the model could be told to restate the problem or even just to ensure that it understands the question, or similar such additions. These would likely make the model pay more attention to the question which I suspect would improve performance.
 
 #### Formally Testing Previous Informal Tests
 
-Early in the project, I tested adjustments in my prompts to find the most effective variants in an informal and untracked manner. This could be undertook a second time using a formal approach.
+Early in the project, I tested adjustments in my prompts to find the most effective variants in an informal and untracked manner. This could be undertaken a second time using a formal approach.
 
 First, there is the presence of the formatting one shot used in all prompts other than AO ("For each question, you MUST prefix the final answer with these characters: '#### '.\nFor example: '#### 42'"). I found that this improved ESR when initially building my prompts,  which is not surprising, since it is a one-shot example for formatting. It would be informative to test this again and gather the statistics on how it performs versus not using it and between variations of it.
 
@@ -436,4 +516,4 @@ The exact phrasing of my prompts also went untested. Before going further, I sho
 
 ### Conclusion
 
-As I said at the start of this section, there is a neverending list of possible ways to analyze this data or conduct new experiments to gather further data. This gives me a deeper appreciation for the analysis work of scientists. You cannot do it all. It is one thing to understand that conceptually when reading a research paper, but it is another to experience it myself and see the vast untreaded wilderness of potential research expanding before me, knowing how small my clearing of completed work is comparatively. But this also gives me hope that as AI continues to develop and can probe the problem space at a rate far faster than we can, it will propel us forward across all realms of data analysis and science more broadly at an unprecedented and presently unfathomable pace. Although I appreciated that enormous impact of AI in theory, and from afar, like through the achievements of AlphaFold, to have it so plainly obvious in the context of my own project hammers it home so much more deeply.
+As I said at the start of this section, there is a neverending list of possible ways to analyze this data or conduct new experiments to gather further data. This gives me a deeper appreciation for the analysis work of scientists. You cannot do it all. It is one thing to understand that conceptually when reading a research paper, but it is another to experience it myself and see the vast untrodden wilderness of potential research expanding before me, knowing how small my clearing of completed work is comparatively. But this also gives me hope that as AI continues to develop and can probe the problem space at a rate far faster than we can, it will propel us forward across all realms of data analysis and science more broadly at an unprecedented and presently unfathomable pace. Although I appreciated the enormous impact of AI in theory, and from afar, like through the achievements of AlphaFold, to have it so plainly obvious in the context of my own project hammers it home so much more deeply.
