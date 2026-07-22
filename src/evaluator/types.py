@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, get_args
 
-StrategyType = Literal["baseline", "answer-only", "cot", "one-shot"]
+StrategyType = Literal["baseline", "answer-only", "cot", "one-shot", "one-shot-and-cot",
+                       "one-shot-of-cot"]
 VALID_PROMPTING_STRATEGIES = get_args(StrategyType)
 
 
@@ -20,6 +21,7 @@ class ResultRecord:
     
     Used in the results output jsonl file.
     """
+    index: int
     formatted_prompt: str
     model_response: str
     extracted_model_answer: str
