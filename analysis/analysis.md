@@ -269,27 +269,27 @@ The following table is sorted by OS error type and then by question number.
 
 ### Outcome Distribution by Error Type
 
-The following tables are results for CoT and BL, split by the OS error type to which they belong. Counts continue to ignore extraction failures. `n` is the number of OS failures of that type. Outcome columns mirror the row order, so same-type persistence sits on the diagonal (offset one column by `✓`). This mirroring excludes Unknown, since unknown OS results were not included in the cross-strategy comparison.
+The following tables are results for CoT and BL, split by the OS error type to which they belong. Counts continue to ignore extraction failures. `n` is the number of OS failures of that type. Outcome columns mirror the row order, so same-type persistence sits on the diagonal (offset two columns by `✓` and `Error Total`). This mirroring excludes Unknown, since unknown OS results were not included in the cross-strategy comparison.
 
 #### Chain of Thought
 
-| One Shot Error | n | ✓ | Reasoning | Misund | Math | Halluc | Forget | Unknown |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Logical Reasoning | 15 | 5 | 8 | 1 | 0 | 0 | 1 | 0 |
-| Misunderstood | 13 | 4 | 2 | 5 | 1 | 0 | 1 | 0 |
-| Math | 6 | 5 | 1 | 0 | 0 | 0 | 0 | 0 |
-| Hallucination | 3 | 2 | 0 | 1 | 0 | 0 | 0 | 0 |
-| Forgetting | 2 | 0 | 0 | 0 | 0 | 0 | 2 | 0 |
+| OS Error Type | n | ✓ | Error Total | Reasoning | Misund | Math | Halluc | Forget | Unknown |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Logical Reasoning | 15 | 5 | 10 | 8 | 1 | 0 | 0 | 1 | 0 |
+| Misunderstood | 13 | 4 | 9 | 2 | 5 | 1 | 0 | 1 | 0 |
+| Math | 6 | 5 | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
+| Hallucination | 3 | 2 | 1 | 0 | 1 | 0 | 0 | 0 | 0 |
+| Forgetting | 2 | 0 | 2 | 0 | 0 | 0 | 0 | 2 | 0 |
 
 #### Baseline
 
-| One Shot Error Type | n | ✓ | Reasoning | Misund | Math | Halluc | Forget | Unknown |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Logical Reasoning | 15 | 3 | 0 | 0 | 0 | 0 | 0 | 12 |
-| Misunderstood | 13 | 2 | 0 | 1 | 1 | 0 | 0 | 9 |
-| Math | 6 | 1 | 1 | 0 | 0 | 0 | 0 | 4 |
-| Hallucination | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 3 |
-| Forgetting | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 2 |
+| OS Error Type | n | ✓ | Error Total | Reasoning | Misund | Math | Halluc | Forget | Unknown |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Logical Reasoning | 15 | 3 | 12 | 0 | 0 | 0 | 0 | 0 | 12 |
+| Misunderstood | 13 | 2 | 11 | 0 | 1 | 1 | 0 | 0 | 9 |
+| Math | 6 | 1 | 5 | 1 | 0 | 0 | 0 | 0 | 4 |
+| Hallucination | 3 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | 3 |
+| Forgetting | 2 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 2 |
 
 
 ### Comparison Analysis
@@ -419,7 +419,7 @@ Like with the [results of OS-and-CoT](#os-and-cot-results), the OS-of-CoT result
 
 #### 1. Why is the ESR so bad?
 
-Here we are presented with the opposite question of OS-and-CoT. I was quite surprised that there was such a bad ESR. Given that OS and OS-and-CoT both have great ones, and that the main thing they have in common is OS, I assumed that OS where just the answer is different would also do well on extraction.
+Here we are presented with the opposite question of OS-and-CoT. I was quite surprised that there was such a bad ESR. Given that OS and OS-and-CoT both have great ones, and that the main thing they have in common is OS, I assumed that OS with only the example answer being different would also do well on extraction.
 
 But I hypothesize that this is simply due to the longer answer example. With a larger answer, the "#### " before the final answer is proportionally smaller and is therefore a weaker format signal.
 

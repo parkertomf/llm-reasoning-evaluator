@@ -11,7 +11,7 @@ The current scope is one model and one dataset:
 - The [GSM8K](https://huggingface.co/datasets/openai/gsm8k) dataset of "basic mathematical problems that require multi-step reasoning," using the test split of 1319 problems.
 
 Prompt strategy options include:
-- **Baseline (BL)**: Prompts the model to give the answer in a specific extractible way, but provides no other instructions.
+- **Baseline (BL)**: Prompts the model to give the answer in a specific extractable way, but provides no other instructions.
 - **Answer Only (AO)**: Prompts the model to respond only with the numerical answer.
 - **Chain of Thought (CoT)**: BL plus instructing the model to think step-by-step.
 - **One Shot (OS)**: BL plus providing a user/assistant history of one question and answer (with reasoning) from the training datasplit of GSM8K.
@@ -90,7 +90,7 @@ Results from local runs are stored in the `output` directory. For each run, both
 Here is a real example in the terminal:
 ![example showing terminal output from a verbose run of eval](assets/terminal_example.png)
 
-Here are real examples of the `json` produced for the summary file for each prompting strategy, as well as the first line (first question from GSM8K) of the `jsonl`. Note that the both have been prettified for the purposes of readability here to be more than one line. Click each prompting strategy name below to open the examples.
+Here are real examples of the `json` produced for the summary file for each prompting strategy, as well as the first line (first question from GSM8K) of the `jsonl`. Note that both have been prettified for the purposes of readability here to be more than one line. Click each prompting strategy name below to open the examples.
 
 <details>
 <summary><b>Baseline</b></summary>
